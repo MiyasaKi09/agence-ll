@@ -42,6 +42,24 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
     </div>
   </section>
 
+  <!-- ——— AU JOURNAL (le cœur de l'accueil) ——— -->
+  <section class="section container journal-home" id="journal" aria-labelledby="journal-h">
+    <div class="section-head">
+      <h2 id="journal-h">Au journal</h2>
+      <a class="section-link plain" href="/journal">
+        <span>Tout voir</span><span class="arr" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    {articles.length > 0 ? (
+      <div class="journal-grid">
+        {articles.map((article) => <ArticleCard article={article} />)}
+      </div>
+    ) : (
+      <p class="lede">Les premiers billets seront publiés ici très bientôt.</p>
+    )}
+  </section>
+
   <!-- ——— PROJET À LA UNE ——— -->
   {featured && (
     <section class="section container featured-sec" aria-labelledby="featured-h">
@@ -85,24 +103,6 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
       </p>
       <a class="m-link" href="/agence">En savoir plus sur l'agence →</a>
     </div>
-  </section>
-
-  <!-- ——— AU JOURNAL (le cœur de l'accueil) ——— -->
-  <section class="section container journal-home" id="journal" aria-labelledby="journal-h">
-    <div class="section-head">
-      <h2 id="journal-h">Au journal</h2>
-      <a class="section-link plain" href="/journal">
-        <span>Tout voir</span><span class="arr" aria-hidden="true">→</span>
-      </a>
-    </div>
-
-    {articles.length > 0 ? (
-      <div class="journal-grid">
-        {articles.map((article) => <ArticleCard article={article} />)}
-      </div>
-    ) : (
-      <p class="lede">Les premiers billets seront publiés ici très bientôt.</p>
-    )}
   </section>
 
   <!-- ——— CONTACT ——— -->
