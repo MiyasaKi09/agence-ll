@@ -15,6 +15,8 @@ button { background: none; border: 0; cursor: pointer; }
 html {
   scroll-behavior: smooth;
 }
+/* compense le header collant quand on arrive sur une ancre (#savoir-faire…) */
+:target { scroll-margin-top: 5.5rem; }
 body {
   background: var(--paper);
   color: var(--ink);
@@ -22,17 +24,29 @@ body {
   font-size: var(--step-0);
   line-height: 1.6;
   font-weight: 400;
+  letter-spacing: 0.005em;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  /* grain discret de papier — donne la matière « linogravure » sans image */
-  background-image:
-    repeating-linear-gradient(0deg,
-      color-mix(in srgb, var(--ink) 1.4%, transparent) 0 1px,
-      transparent 1px 3px);
-  background-attachment: fixed;
+  overflow-x: hidden;
 }
 
-/* — Titres ———————————————————————————————————————————————————————— */
+/* Grain de papier — « matière imprimée » sans image, voilé sur tout l'écran.
+   Reproduit la maquette validée (design/accueil-prototype.html). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* — Titres ———————————————————————————————————————————————————————
+   Fraunces variable : on monte l'optical-size sur les grands titres pour un
+   registre architectural, on garde SOFT bas (peu arrondi). L'emphase <em>
+   bascule en italique terre cuite — l'accent éditorial de la maquette. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 460;
@@ -40,10 +54,16 @@ h1, h2, h3, h4 {
   letter-spacing: -0.015em;
   text-wrap: balance;
 }
-h1 { font-size: var(--step-4); }
-h2 { font-size: var(--step-3); }
-h3 { font-size: var(--step-2); }
-h4 { font-size: var(--step-1); }
+h1 { font-size: var(--step-4); font-variation-settings: 'opsz' 144, 'SOFT' 28; line-height: 1.02; }
+h2 { font-size: var(--step-3); font-variation-settings: 'opsz' 80, 'SOFT' 24; }
+h3 { font-size: var(--step-2); font-variation-settings: 'opsz' 50, 'SOFT' 28; }
+h4 { font-size: var(--step-1); font-variation-settings: 'opsz' 36, 'SOFT' 28; }
+
+h1 em, h2 em, h3 em {
+  font-style: italic;
+  color: var(--terracotta);
+  font-variation-settings: 'opsz' 144, 'SOFT' 60;
+}
 
 p { max-width: var(--measure); }
 p + p { margin-top: var(--space-s); }
@@ -66,23 +86,25 @@ a:not(.plain):hover {
 .eyebrow {
   font-family: var(--font-mono);
   font-size: var(--step--1);
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--stone);
+  color: var(--terracotta-deep);
 }
 .meta {
   font-family: var(--font-mono);
   font-size: var(--step--1);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   color: var(--stone);
 }
 .num {
   font-family: var(--font-script);
   color: var(--seal);
   line-height: 1;
-  /* léger basculement « écrit à la main » */
+  /* léger basculement « écrit à la main », halo papier pour l'effet « encre sur épreuve » */
   display: inline-block;
   transform: rotate(-3deg);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--paper) 60%, transparent);
 }
 .lede { font-size: var(--step-1); line-height: 1.45; max-width: 46ch; color: var(--ink-soft); }
 
@@ -97,6 +119,35 @@ a:not(.plain):hover {
 .rule { border: 0; border-top: var(--rule); }
 .stack > * + * { margin-top: var(--space-m); }
 
+/* — En-tête de section éditorial (filet haut + titre + lien/label) ————
+   Motif récurrent de la maquette : un filet à l'encre, le titre à gauche,
+   un label monospace ou un lien « → » à droite. */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-m);
+  flex-wrap: wrap;
+  border-top: 1px solid var(--ink);
+  padding-top: var(--space-s);
+  margin-bottom: clamp(1.8rem, 4vw, 3rem);
+}
+.section-head h2 { font-variation-settings: 'opsz' 80, 'SOFT' 24; }
+.section-link {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5ch;
+  white-space: nowrap;
+  transition: color 0.25s var(--ease), gap 0.25s var(--ease);
+}
+.section-link .arr { color: var(--seal); }
+.section-link:hover { color: var(--ink); gap: 0.9ch; }
+
 /* — Prose (corps d'article / pages MDX) ——————————————————————————— */
 .prose { max-width: var(--measure); }
 .prose > * + * { margin-top: var(--space-m); }
@@ -109,6 +160,61 @@ a:not(.plain):hover {
   font-family: var(--font-display);
   font-size: var(--step-1);
   color: var(--ink-soft);
+}
+
+/* — Matières (placeholders temporaires) ——————————————————————————————
+   Textures « terre / chaux-chanvre / bois » générées en CSS, pour que le site
+   tienne debout SANS photo. À remplacer par les vraies photos de chantier via
+   <Image> (astro:assets) — voir CLAUDE.md › « Système de design » / design/. */
+.mat {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--paper-deep);
+  border: var(--rule);
+}
+.mat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.38'/%3E%3C/svg%3E");
+}
+.mat-pise {
+  background:
+    repeating-linear-gradient(to bottom,
+      #b58457 0, #b58457 17px,
+      #a9764a 17px, #a9764a 21px,
+      #bd8d62 21px, #bd8d62 41px,
+      #9f6c44 41px, #9f6c44 45px,
+      #b07f54 45px, #b07f54 64px,
+      #a87248 64px, #a87248 68px);
+}
+.mat-chanvre {
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255,255,255,.35), transparent 9px),
+    radial-gradient(circle at 70% 65%, rgba(120,90,60,.18), transparent 7px),
+    radial-gradient(circle at 50% 80%, rgba(255,255,255,.25), transparent 6px),
+    linear-gradient(150deg, #d8d0bd, #c8bda4);
+  background-size: 34px 34px, 28px 28px, 40px 40px, 100% 100%;
+}
+.mat-bois {
+  background:
+    repeating-linear-gradient(94deg,
+      #b88a5a 0, #b88a5a 13px,
+      #ac7d4d 13px, #ac7d4d 15px,
+      #c2966a 15px, #c2966a 30px,
+      #a5743f 30px, #a5743f 32px);
+}
+/* voile d'ombre directionnel commun, pour la profondeur */
+.mat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(115deg, color-mix(in srgb, var(--ink) 14%, transparent), transparent 48%);
+  pointer-events: none;
 }
 
 /* — Accessibilité ————————————————————————————————————————————————— */
@@ -128,7 +234,7 @@ a:not(.plain):hover {
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-::selection { background: color-mix(in srgb, var(--seal) 24%, transparent); }
+::selection { background: var(--seal); color: var(--paper); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

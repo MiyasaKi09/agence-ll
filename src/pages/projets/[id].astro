@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { Image } from 'astro:assets';
 import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
+import MaterialBand from '../../components/MaterialBand.astro';
 
 export const getStaticPaths = (async () => {
   const projets = await getCollection('projets', ({ data }) => !data.brouillon);
@@ -16,6 +17,15 @@ const { entry } = Astro.props;
 const d = entry.data;
 const { Content } = await render(entry);
 
+const statutLabel: Record<string, string> = {
+  concours: 'Concours', 'étude': 'Étude', chantier: 'Chantier', 'livré': 'Livré',
+};
+
+// Matière du placeholder de couverture — déterministe, identique à la vignette.
+const matieres = ['chanvre', 'pise', 'bois'] as const;
+const seed = [...entry.id].reduce((acc, c) => acc + c.charCodeAt(0), 0);
+const matiere = matieres[seed % matieres.length];
+
 // Fiche technique — n'affiche que les champs renseignés
 const fiche = [
   ['Programme', d.programme],
@@ -23,7 +33,7 @@ const fiche = [
   ['Année', String(d.annee)],
   ['Surface', d.surface],
   ['Maîtrise d’ouvrage', d.maitrise_ouvrage],
-  ['Statut', d.statut],
+  ['Statut', statutLabel[d.statut] ?? d.statut],
 ].filter(([, v]) => Boolean(v)) as [string, string][];
 ---
 <Base title={`${d.titre} — Agence L&L`} description={d.resume}>
@@ -31,18 +41,22 @@ const fiche = [
     <!-- En-tête éditorial -->
     <header class="section container proj-head">
       <p class="topline">
-        <span class="num">{d.numero}</span>
+        <span class="num">N°{d.numero}</span>
         <span class="meta">{d.programme} · {d.annee} · {d.lieu}</span>
       </p>
       <h1>{d.titre}</h1>
       <p class="lede">{d.resume}</p>
     </header>
 
-    <!-- Couverture pleine largeur -->
-    {d.couverture && (
+    <!-- Couverture pleine largeur — vraie photo si disponible, sinon matière -->
+    {d.couverture ? (
       <figure class="cover container">
         <Image src={d.couverture} alt={d.titre} widths={[720, 1200, 1800]} sizes="100vw" />
       </figure>
+    ) : (
+      <div class="cover container">
+        <MaterialBand material={matiere} caption={`${d.programme} · épreuve à venir`} alt={`Visuel à venir — ${d.titre}`} />
+      </div>
     )}
 
     <!-- Corps + fiche technique -->
@@ -83,9 +97,10 @@ const fiche = [
 
 <style>
   .proj-head { max-width: 52ch; padding-bottom: var(--space-l); }
-  .topline { display: flex; align-items: baseline; gap: var(--space-s); }
+  .topline { display: flex; align-items: baseline; gap: var(--space-s); flex-wrap: wrap; }
   .topline .num { font-size: var(--step-2); }
-  .proj-head h1 { margin-block: var(--space-s) var(--space-m); }
+  /* titre de projet : grand mais pas « hero » — évite les titres en colonne d'un mot */
+  .proj-head h1 { font-size: var(--step-3); margin-block: var(--space-s) var(--space-m); }
 
   .cover { padding-block: 0; }
   .cover :global(img) { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }

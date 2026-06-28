@@ -1,0 +1,79 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Gabarit de mentions légales (droit français). Les champs entre crochets
+// [À COMPLÉTER] sont à renseigner par Julien avant la mise en ligne :
+// forme juridique, SIRET, adresse, hébergeur, etc.
+---
+<Base
+  title="Mentions légales — Agence L&L"
+  description="Mentions légales du site de l'Agence L&L."
+>
+  <section class="section container legal">
+    <header class="legal-head">
+      <p class="eyebrow">Informations</p>
+      <h1>Mentions <em>légales</em></h1>
+    </header>
+
+    <div class="prose">
+      <h2>Éditeur du site</h2>
+      <p>
+        Le présent site est édité par l’<strong>Agence&nbsp;L&amp;L</strong>,
+        [À COMPLÉTER : forme juridique], dont le siège est situé
+        [À COMPLÉTER : adresse], Paris, France.<br />
+        SIRET : [À COMPLÉTER] — RCS : [À COMPLÉTER].<br />
+        Contact : <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a>.
+      </p>
+
+      <h2>Directeur de la publication</h2>
+      <p>Julien&nbsp;Lenglet, en sa qualité de cogérant de l’Agence&nbsp;L&amp;L.</p>
+
+      <h2>Hébergement</h2>
+      <p>
+        Le site est hébergé par [À COMPLÉTER : nom de l’hébergeur, ex. Vercel Inc.],
+        [À COMPLÉTER : adresse de l’hébergeur].
+      </p>
+
+      <h2>Propriété intellectuelle</h2>
+      <p>
+        L’ensemble des contenus présents sur ce site (textes, images, identité
+        visuelle, sceau et marque «&nbsp;L&amp;L&nbsp;») est la propriété de
+        l’Agence&nbsp;L&amp;L, sauf mention contraire, et est protégé par le droit
+        d’auteur. Toute reproduction ou représentation, totale ou partielle, sans
+        autorisation écrite préalable, est interdite.
+      </p>
+
+      <h2>Données personnelles</h2>
+      <p>
+        Les informations transmises via le formulaire de contact ne sont utilisées
+        que pour répondre à votre demande et ne font l’objet d’aucune cession à des
+        tiers. Conformément au RGPD et à la loi «&nbsp;Informatique et Libertés&nbsp;»,
+        vous disposez d’un droit d’accès, de rectification et de suppression des
+        données vous concernant, exerçable à l’adresse
+        <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a>.
+      </p>
+
+      <h2>Cookies</h2>
+      <p>
+        Ce site statique ne dépose pas de cookie de suivi publicitaire. Le cas
+        échéant, seuls des cookies strictement nécessaires au bon fonctionnement
+        ou à la mesure d’audience anonymisée pourraient être utilisés.
+      </p>
+
+      <h2>Crédits</h2>
+      <p>
+        Conception et développement : Agence&nbsp;L&amp;L. Site réalisé avec Astro.
+        Caractères : Fraunces, Hanken&nbsp;Grotesk, JetBrains&nbsp;Mono, Caveat.
+      </p>
+
+      <p class="back"><a href="/">← Retour à l’accueil</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .legal-head { margin-bottom: var(--space-xl); }
+  .legal-head h1 { margin-top: var(--space-xs); }
+  .legal .prose h2 { font-size: var(--step-1); }
+  .back { margin-top: var(--space-xl); font-family: var(--font-mono); font-size: var(--step--1); }
+</style>

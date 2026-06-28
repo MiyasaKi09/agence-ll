@@ -4,68 +4,88 @@ const year = new Date().getFullYear();
 ---
 <footer class="site-footer">
   <div class="container">
-    <hr class="rule" />
-    <div class="grid">
-      <div class="seal-block">
-        <Monogram variant="plain" size={96} />
+    <div class="footer-row">
+      <div class="footer-brand">
+        <Monogram variant="plain" size={60} class="footer-seal" />
+        <div>
+          <div class="name">Agence&nbsp;L<span class="amp">&amp;</span>L</div>
+          <div class="sub">Architecture · Rénovation · Vivant</div>
+        </div>
       </div>
 
-      <div class="stack">
-        <p class="eyebrow">Agence</p>
-        <p>
-          Agence L&amp;L — Architecture<br />
-          Julien&nbsp;Lenglet · Zoé&nbsp;Lenglet<br />
-          Paris, France
-        </p>
-      </div>
-
-      <div class="stack">
-        <p class="eyebrow">Contact</p>
-        <p>
+      <div class="footer-cols">
+        <nav class="col" aria-label="Agence">
+          <span class="h">Agence</span>
+          <a href="/agence">Manifeste</a><br />
+          <a href="/agence#savoir-faire">Savoir-faire</a><br />
+          <a href="/agence#equipe">Équipe</a>
+        </nav>
+        <nav class="col" aria-label="Le site">
+          <span class="h">Le site</span>
+          <a href="/projets">Projets</a><br />
+          <a href="/contact">Contact</a><br />
+          <a href="/mentions-legales">Mentions légales</a>
+        </nav>
+        <div class="col">
+          <span class="h">Contact</span>
           <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a><br />
-          <span class="meta">Paris · Normandie</span>
-        </p>
-      </div>
-
-      <div class="stack">
-        <p class="eyebrow">Suivre</p>
-        <p>
-          <a href="#">Instagram</a><br />
-          <a href="#">LinkedIn</a>
-        </p>
+          Paris&nbsp;—&nbsp;Normandie<br />
+          <span class="muted">LinkedIn · Instagram <span class="soon">(à venir)</span></span>
+        </div>
       </div>
     </div>
 
     <div class="colophon">
-      <span class="meta">© {year} Agence L&amp;L — Tous droits réservés</span>
-      <span class="meta"><a href="/mentions-legales">Mentions légales</a></span>
+      <span>© {year} Agence L&amp;L — Architectes DE</span>
+      <span><a href="/mentions-legales">Mentions légales</a></span>
     </div>
   </div>
 </footer>
 
 <style>
-  .site-footer { padding-block: var(--space-xl) var(--space-l); }
-  .grid {
-    display: grid;
-    grid-template-columns: auto repeat(3, 1fr);
-    gap: var(--space-l);
-    align-items: start;
-    padding-block: var(--space-xl);
-  }
-  .seal-block :global(svg) { color: var(--terracotta-deep); }
-  .colophon {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-s);
-    padding-top: var(--space-m);
+  .site-footer {
     border-top: var(--rule);
+    margin-top: clamp(3rem, 7vw, 5rem);
+    padding-block: clamp(2.2rem, 5vw, 3.4rem);
   }
-  @media (max-width: 52rem) {
-    .grid { grid-template-columns: 1fr 1fr; }
-    .seal-block { grid-column: 1 / -1; }
+  .footer-row {
+    display: flex; justify-content: space-between;
+    gap: 2rem; flex-wrap: wrap; align-items: flex-start;
   }
-  @media (max-width: 30rem) {
-    .grid { grid-template-columns: 1fr; }
+  .footer-brand { display: flex; gap: 1rem; align-items: center; }
+  .footer-seal { color: var(--terracotta-deep); flex: none; }
+  .name {
+    font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; line-height: 1.1;
+    font-variation-settings: 'opsz' 40, 'SOFT' 28;
+  }
+  .name .amp { color: var(--seal); font-style: italic; }
+  .sub {
+    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-soft); margin-top: 0.3rem;
+  }
+
+  .footer-cols { display: flex; gap: clamp(1.6rem, 4vw, 3.4rem); flex-wrap: wrap; }
+  .col {
+    font-family: var(--font-mono); font-size: var(--step--1); line-height: 1.85;
+    color: var(--ink-soft); letter-spacing: 0.03em;
+  }
+  .col .h {
+    color: var(--ink); text-transform: uppercase; letter-spacing: 0.13em;
+    font-size: 0.66rem; display: block; margin-bottom: 0.4rem;
+  }
+  .col a:hover { color: var(--seal); }
+  .col .muted { color: var(--stone); }
+  .col .soon { opacity: 0.7; }
+
+  .colophon {
+    margin-top: 2.4rem; padding-top: 1rem;
+    border-top: 1px dashed color-mix(in srgb, var(--ink) 16%, transparent);
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+
+  @media (max-width: 40rem) {
+    .footer-row { flex-direction: column; gap: var(--space-l); }
   }
 </style>
