@@ -1,0 +1,71 @@
+---
+import Monogram from './Monogram.astro';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="container">
+    <hr class="rule" />
+    <div class="grid">
+      <div class="seal-block">
+        <Monogram variant="plain" size={96} />
+      </div>
+
+      <div class="stack">
+        <p class="eyebrow">Agence</p>
+        <p>
+          Agence L&amp;L — Architecture<br />
+          Julien&nbsp;Lenglet · Zoé&nbsp;Lenglet<br />
+          Paris, France
+        </p>
+      </div>
+
+      <div class="stack">
+        <p class="eyebrow">Contact</p>
+        <p>
+          <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a><br />
+          <span class="meta">Paris · Normandie</span>
+        </p>
+      </div>
+
+      <div class="stack">
+        <p class="eyebrow">Suivre</p>
+        <p>
+          <a href="#">Instagram</a><br />
+          <a href="#">LinkedIn</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="colophon">
+      <span class="meta">© {year} Agence L&amp;L — Tous droits réservés</span>
+      <span class="meta"><a href="/mentions-legales">Mentions légales</a></span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer { padding-block: var(--space-xl) var(--space-l); }
+  .grid {
+    display: grid;
+    grid-template-columns: auto repeat(3, 1fr);
+    gap: var(--space-l);
+    align-items: start;
+    padding-block: var(--space-xl);
+  }
+  .seal-block :global(svg) { color: var(--terracotta-deep); }
+  .colophon {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    padding-top: var(--space-m);
+    border-top: var(--rule);
+  }
+  @media (max-width: 52rem) {
+    .grid { grid-template-columns: 1fr 1fr; }
+    .seal-block { grid-column: 1 / -1; }
+  }
+  @media (max-width: 30rem) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>

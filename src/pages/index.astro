@@ -1,0 +1,193 @@
+---
+import Base from '../layouts/Base.astro';
+import Monogram from '../components/Monogram.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
+  .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee)
+  .slice(0, 4);
+
+// Piliers — décrivent un parti pris, pas une séquence : pas de 01/02/03.
+const piliers = [
+  {
+    cle: 'Sobriété',
+    titre: 'Faire avec ce qui est là',
+    texte:
+      'Rénovation énergétique, réemploi, transformation. On part de l’existant — du bâti, du sol, du climat — avant de poser la première ligne.',
+  },
+  {
+    cle: 'Matière',
+    titre: 'Construire biosourcé',
+    texte:
+      'Pisé, chaux-chanvre, fibre de bois. Des matières à faible empreinte, choisies pour leur juste usage et leur tenue dans le temps.',
+  },
+  {
+    cle: 'Vivant',
+    titre: 'Composer avec le milieu',
+    texte:
+      'Biodiversité, pleine terre, plantation. Le projet ménage une place au vivant plutôt que de l’effacer.',
+  },
+];
+---
+<Base>
+  <!-- ——— HERO : la thèse de l’agence ——— -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-text">
+        <p class="eyebrow">Agence d’architecture — Paris&nbsp;·&nbsp;Normandie</p>
+        <h1>
+          Réparer, transformer,<br />prolonger le déjà-là.
+        </h1>
+        <p class="lede">
+          L’Agence&nbsp;L&amp;L conçoit des bâtiments sobres et vivants —
+          rénovation énergétique, logement, équipements publics. Une architecture
+          attentive aux matières et au vivant, du diagnostic au chantier.
+        </p>
+        <div class="hero-meta">
+          <span class="meta">Fondée en 2026</span>
+          <span class="meta">Marchés publics · Logement social · Biodiversité</span>
+        </div>
+      </div>
+
+      <div class="hero-seal">
+        <Monogram variant="seal" size={220} title="Sceau de l’Agence L&L" />
+        <span class="seal-note num">&amp;&nbsp;au vivant</span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule container-rule" />
+
+  <!-- ——— APPROCHE ——— -->
+  <section class="section container approche">
+    <header class="approche-head">
+      <p class="eyebrow">Approche</p>
+      <h2>Une manière de bâtir, trois exigences.</h2>
+    </header>
+    <div class="piliers">
+      {piliers.map((p) => (
+        <article class="pilier stack">
+          <p class="pilier-cle meta">{p.cle}</p>
+          <h3>{p.titre}</h3>
+          <p>{p.texte}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- ——— PROJETS SÉLECTIONNÉS ——— -->
+  <section class="section container projets">
+    <header class="projets-head">
+      <div>
+        <p class="eyebrow">Sélection</p>
+        <h2>Projets récents</h2>
+      </div>
+      <a href="/projets" class="voir-tout">Tous les projets →</a>
+    </header>
+
+    {projets.length > 0 ? (
+      <div class="projets-grid">
+        {projets.map((projet) => <ProjectCard projet={projet} />)}
+      </div>
+    ) : (
+      <p class="lede">Les premiers projets seront publiés ici très bientôt.</p>
+    )}
+  </section>
+
+  <!-- ——— CTA CONTACT ——— -->
+  <section class="section container cta">
+    <div class="cta-inner">
+      <p class="eyebrow">Travaillons ensemble</p>
+      <h2>Un projet de rénovation, de logement ou d’équipement&nbsp;?</h2>
+      <p class="lede">
+        Maîtrise d’ouvrage publique ou privée, concours, faisabilité : parlons-en.
+      </p>
+      <a href="/contact" class="cta-link plain">Nous écrire →</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* HERO */
+  .hero { padding-block: clamp(3rem, 9vw, 7rem) clamp(2rem, 6vw, 4rem); }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--space-xl);
+    align-items: center;
+  }
+  .hero h1 { margin-top: var(--space-s); }
+  .hero .lede { margin-top: var(--space-m); }
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: var(--space-s) var(--space-l);
+    margin-top: var(--space-l);
+    padding-top: var(--space-s);
+    border-top: var(--rule);
+  }
+  .hero-seal {
+    position: relative;
+    display: grid; place-items: center;
+    color: var(--terracotta-deep);
+  }
+  .hero-seal :global(svg) {
+    animation: settle 0.9s var(--ease) both;
+  }
+  .seal-note {
+    position: absolute; bottom: -0.5rem; right: 1rem;
+    font-size: var(--step-2);
+    transform: rotate(-6deg);
+  }
+  @keyframes settle {
+    from { opacity: 0; transform: scale(0.94) rotate(-4deg); }
+    to   { opacity: 1; transform: scale(1) rotate(0); }
+  }
+
+  .container-rule { max-width: var(--maxw); margin-inline: auto; }
+
+  /* APPROCHE */
+  .approche-head { max-width: 30ch; margin-bottom: var(--space-xl); }
+  .approche-head h2 { margin-top: var(--space-xs); }
+  .piliers {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xl);
+  }
+  .pilier-cle {
+    color: var(--terracotta);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .pilier h3 { font-size: var(--step-2); }
+
+  /* PROJETS */
+  .projets-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: var(--space-m); margin-bottom: var(--space-xl);
+  }
+  .projets-head h2 { margin-top: var(--space-xs); }
+  .voir-tout { font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em; white-space: nowrap; }
+  .projets-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl) var(--space-l);
+  }
+
+  /* CTA */
+  .cta { padding-block: var(--space-3xl); }
+  .cta-inner { max-width: 38ch; }
+  .cta-inner h2 { margin-top: var(--space-xs); }
+  .cta-inner .lede { margin-top: var(--space-s); }
+  .cta-link {
+    display: inline-block; margin-top: var(--space-l);
+    font-family: var(--font-display); font-size: var(--step-2);
+    border-bottom: 2px solid var(--seal); padding-bottom: 0.1em;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .cta-link:hover { color: var(--terracotta-deep); border-color: var(--terracotta-deep); }
+
+  /* Responsive */
+  @media (max-width: 56rem) {
+    .hero-grid { grid-template-columns: 1fr; gap: var(--space-l); }
+    .hero-seal { order: -1; justify-content: flex-start; }
+    .piliers { grid-template-columns: 1fr; gap: var(--space-l); }
+    .projets-grid { grid-template-columns: 1fr; }
+  }
+</style>

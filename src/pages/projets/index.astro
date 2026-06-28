@@ -1,0 +1,41 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
+  .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
+---
+<Base
+  title="Projets — Agence L&L"
+  description="Réalisations et études de l'Agence L&L : rénovation énergétique, logement, équipements publics, entre Paris et la Normandie."
+>
+  <section class="section container">
+    <header class="page-head">
+      <p class="eyebrow">Travaux</p>
+      <h1>Projets</h1>
+      <p class="lede">
+        Concours, faisabilités, rénovations, chantiers. Une pratique qui part de
+        l’existant et cherche la sobriété juste.
+      </p>
+    </header>
+
+    {projets.length > 0 ? (
+      <div class="grid">
+        {projets.map((projet) => <ProjectCard projet={projet} />)}
+      </div>
+    ) : (
+      <p class="lede">Aucun projet publié pour l’instant.</p>
+    )}
+  </section>
+</Base>
+
+<style>
+  .page-head { max-width: 46ch; margin-bottom: var(--space-2xl); }
+  .page-head h1 { margin-block: var(--space-xs) var(--space-m); }
+  .grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2xl) var(--space-l);
+  }
+  @media (max-width: 56rem) { .grid { grid-template-columns: 1fr; gap: var(--space-xl); } }
+</style>

@@ -1,0 +1,140 @@
+/* =====================================================================
+   AGENCE L&L — Styles globaux (base)
+   ===================================================================== */
+@import './tokens.css';
+
+/* — Reset léger ——————————————————————————————————————————————————— */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, picture, svg, video { display: block; max-width: 100%; height: auto; }
+input, button, textarea, select { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; }
+
+/* — Corps ————————————————————————————————————————————————————————— */
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  /* grain discret de papier — donne la matière « linogravure » sans image */
+  background-image:
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--ink) 1.4%, transparent) 0 1px,
+      transparent 1px 3px);
+  background-attachment: fixed;
+}
+
+/* — Titres ———————————————————————————————————————————————————————— */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 460;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); }
+h4 { font-size: var(--step-1); }
+
+p { max-width: var(--measure); }
+p + p { margin-top: var(--space-s); }
+
+/* — Liens ————————————————————————————————————————————————————————— */
+a { color: inherit; text-decoration: none; }
+a:not(.plain) {
+  background-image: linear-gradient(var(--terracotta), var(--terracotta));
+  background-size: 100% 1px;
+  background-position: 0 1.12em;
+  background-repeat: no-repeat;
+  transition: background-size 0.2s var(--ease), color 0.2s var(--ease);
+}
+a:not(.plain):hover {
+  color: var(--terracotta-deep);
+  background-image: linear-gradient(var(--terracotta-deep), var(--terracotta-deep));
+}
+
+/* — Détails typographiques utiles ———————————————————————————————— */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.meta {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.02em;
+  color: var(--stone);
+}
+.num {
+  font-family: var(--font-script);
+  color: var(--seal);
+  line-height: 1;
+  /* léger basculement « écrit à la main » */
+  display: inline-block;
+  transform: rotate(-3deg);
+}
+.lede { font-size: var(--step-1); line-height: 1.45; max-width: 46ch; color: var(--ink-soft); }
+
+/* — Conteneurs & utilitaires —————————————————————————————————————— */
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.section { padding-block: var(--space-2xl); }
+.rule { border: 0; border-top: var(--rule); }
+.stack > * + * { margin-top: var(--space-m); }
+
+/* — Prose (corps d'article / pages MDX) ——————————————————————————— */
+.prose { max-width: var(--measure); }
+.prose > * + * { margin-top: var(--space-m); }
+.prose h2 { font-size: var(--step-2); margin-top: var(--space-xl); }
+.prose h3 { font-size: var(--step-1); margin-top: var(--space-l); }
+.prose img { margin-block: var(--space-l); }
+.prose blockquote {
+  border-left: 2px solid var(--terracotta);
+  padding-left: var(--space-m);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  color: var(--ink-soft);
+}
+
+/* — Accessibilité ————————————————————————————————————————————————— */
+:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 3px;
+}
+.skip-link {
+  position: absolute; left: var(--space-s); top: -4rem;
+  background: var(--ink); color: var(--paper);
+  padding: var(--space-2xs) var(--space-s);
+  transition: top 0.2s var(--ease); z-index: 100;
+}
+.skip-link:focus { top: var(--space-s); }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+::selection { background: color-mix(in srgb, var(--seal) 24%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

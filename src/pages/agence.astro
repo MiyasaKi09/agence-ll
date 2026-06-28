@@ -1,0 +1,127 @@
+---
+import Base from '../layouts/Base.astro';
+import Monogram from '../components/Monogram.astro';
+
+const savoirfaire = [
+  ['Rénovation énergétique', 'Diagnostic, stratégie d’isolation, systèmes (PAC, ventilation), confort d’été.'],
+  ['Logement social', 'Programmation, qualité d’usage, coûts maîtrisés, marchés publics.'],
+  ['Équipements publics', 'Concours, faisabilité, MOP, concertation.'],
+  ['Construction biosourcée', 'Pisé, chaux-chanvre, fibre de bois, réemploi.'],
+  ['Paysage & biodiversité', 'Pleine terre, plantation naturaliste, gestion de l’eau.'],
+];
+const equipe = [
+  ['Julien Lenglet', 'Architecte DE — architecture des milieux et paysages (ENSAPLV). Formation initiale en biologie (Sorbonne).'],
+  ['Zoé Lenglet', 'Architecte — HMONP. Conduite de projet, qualité d’exécution.'],
+];
+---
+<Base
+  title="L’agence — Agence L&L"
+  description="Agence L&L, un duo d'architectes entre Paris et la Normandie. Rénovation énergétique, logement, équipements publics, construction biosourcée."
+>
+  <!-- Manifeste -->
+  <section class="section container manifeste">
+    <p class="eyebrow">L’agence</p>
+    <h1>Une architecture du déjà-là, sobre et vivante.</h1>
+    <div class="manifeste-body prose">
+      <p>
+        L’Agence&nbsp;L&amp;L est un duo d’architectes installé à Paris, qui travaille
+        entre la capitale et la Normandie. Nous concevons des bâtiments qui partent
+        de l’existant — du bâti, du sol, du climat — pour faire mieux avec moins.
+      </p>
+      <p>
+        Rénovation énergétique, logement, équipements publics : notre pratique
+        privilégie les matières biosourcées, la juste mesure technique et une
+        attention constante au vivant. De la première esquisse au chantier, nous
+        cherchons des projets utiles, tenus et durables.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule container-rule" />
+
+  <!-- Savoir-faire -->
+  <section class="section container">
+    <p class="eyebrow">Savoir-faire</p>
+    <h2 class="sf-title">Ce que nous faisons</h2>
+    <dl class="sf-list">
+      {savoirfaire.map(([k, v]) => (
+        <div class="sf-row">
+          <dt>{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <hr class="rule container-rule" />
+
+  <!-- Équipe -->
+  <section class="section container equipe">
+    <div class="equipe-head">
+      <p class="eyebrow">Le duo</p>
+      <h2>L&amp;L — deux Lenglet</h2>
+    </div>
+    <div class="equipe-grid">
+      {equipe.map(([nom, bio]) => (
+        <article class="membre stack">
+          <div class="portrait" aria-hidden="true"></div>
+          <h3>{nom}</h3>
+          <p>{bio}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Territoire -->
+  <section class="section container territoire">
+    <Monogram variant="plain" size={120} class="terr-seal" />
+    <div>
+      <p class="eyebrow">Territoire</p>
+      <h2>Entre Paris et la Normandie.</h2>
+      <p class="lede">
+        Un corridor de travail qui relie la densité parisienne aux territoires
+        normands — et la possibilité, partout, d’une architecture attentive aux lieux.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .manifeste h1 { margin-block: var(--space-s) var(--space-l); max-width: 18ch; }
+  .manifeste-body { font-size: var(--step-1); }
+  .container-rule { max-width: var(--maxw); margin-inline: auto; }
+
+  .sf-title { margin-block: var(--space-xs) var(--space-xl); }
+  .sf-list { display: grid; gap: 0; }
+  .sf-row {
+    display: grid; grid-template-columns: 18rem 1fr; gap: var(--space-l);
+    padding-block: var(--space-m); border-top: var(--rule); align-items: baseline;
+  }
+  .sf-row dt { font-family: var(--font-display); font-size: var(--step-1); }
+  .sf-row dd { color: var(--ink-soft); }
+
+  .equipe-head { margin-bottom: var(--space-xl); }
+  .equipe-head h2 { margin-top: var(--space-xs); }
+  .equipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl); }
+  .portrait {
+    aspect-ratio: 3 / 4; background: var(--paper-deep);
+    border: var(--rule);
+    background-image: repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--moss) 8%, var(--paper-deep)) 0 12px,
+      var(--paper-deep) 12px 24px);
+  }
+  .membre h3 { font-size: var(--step-2); }
+
+  .territoire {
+    display: grid; grid-template-columns: auto 1fr; gap: var(--space-xl);
+    align-items: center; padding-block: var(--space-3xl);
+  }
+  .terr-seal { color: var(--terracotta-deep); }
+  .territoire h2 { margin-block: var(--space-xs) var(--space-s); }
+
+  @media (max-width: 52rem) {
+    .sf-row { grid-template-columns: 1fr; gap: var(--space-2xs); }
+    .equipe-grid { grid-template-columns: 1fr; gap: var(--space-l); }
+    .territoire { grid-template-columns: 1fr; gap: var(--space-l); }
+  }
+</style>

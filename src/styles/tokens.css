@@ -1,0 +1,60 @@
+/* =====================================================================
+   AGENCE L&L — Jetons de design (design tokens)
+   La distinctivité vit dans la SIGNATURE (sceau/linogravure poulpe,
+   numéros manuscrits rouges, grille éditoriale), pas dans la palette seule.
+   Voir CLAUDE.md › « Système de design ».
+   ===================================================================== */
+
+:root {
+  /* — COULEUR — terre, encre, sceau, mousse ————————————————————— */
+  --paper:           #EEEAE1; /* plâtre chaulé — légèrement plus froid que le cream « par défaut » */
+  --paper-deep:      #E4DED2; /* panneaux, alternance de fond */
+  --ink:             #1C1A17; /* encre chaude — jamais noir pur */
+  --ink-soft:        #4A463F;
+  --stone:           #8A8276; /* gris chaud — légendes, métadonnées, filets */
+  --stone-light:     #C7C0B4;
+  --terracotta:      #A24B2C; /* terre cuite / argile cuite — accent principal */
+  --terracotta-deep: #7E3A22;
+  --seal:            #C5392B; /* rouge tampon — numéros manuscrits, « validations » */
+  --moss:            #3E4A36; /* vert sombre — biodiversité, accent rare et précieux */
+
+  /* — TYPOGRAPHIE ————————————————————————————————————————————————
+     Display : Fraunces (serif variable — monte l'optical-size pour les titres,
+               garde le contraste sous contrôle pour rester architectural)
+     Body    : Hanken Grotesk (grotesque chaud, moins « par défaut » qu'Inter)
+     Mono    : JetBrains Mono (codes projet, dates, surfaces, lieux)
+     Script  : Caveat (numéros manuscrits — placeholder de TA vraie main, à scanner) */
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body:    'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --font-script:  'Caveat', cursive;
+
+  /* échelle typographique fluide — ratio ~1.28 */
+  --step--1: clamp(0.83rem, 0.80rem + 0.15vw, 0.90rem);
+  --step-0:  clamp(1.00rem, 0.95rem + 0.25vw, 1.125rem);
+  --step-1:  clamp(1.30rem, 1.20rem + 0.50vw, 1.60rem);
+  --step-2:  clamp(1.70rem, 1.50rem + 1.00vw, 2.40rem);
+  --step-3:  clamp(2.20rem, 1.80rem + 2.00vw, 3.60rem);
+  --step-4:  clamp(2.80rem, 2.00rem + 4.00vw, 5.50rem);
+  --step-5:  clamp(3.40rem, 2.00rem + 7.00vw, 8.00rem);
+
+  /* — ESPACE & GRILLE ———————————————————————————————————————————— */
+  --space-2xs: 0.5rem;
+  --space-xs:  0.75rem;
+  --space-s:   1rem;
+  --space-m:   1.5rem;
+  --space-l:   2.5rem;
+  --space-xl:  4rem;
+  --space-2xl: 6.5rem;
+  --space-3xl: 10rem;
+
+  --measure: 64ch;                          /* largeur de lecture confortable */
+  --gutter:  clamp(1.25rem, 5vw, 4rem);     /* marge latérale */
+  --maxw:    1320px;                        /* largeur max du contenu */
+
+  /* — DIVERS ————————————————————————————————————————————————————— */
+  --rule:   1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  --radius: 0;                              /* zéro arrondi — registre éditorial/architectural */
+  --ease:   cubic-bezier(0.2, 0.7, 0.2, 1);
+  --shadow-press: 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent);
+}

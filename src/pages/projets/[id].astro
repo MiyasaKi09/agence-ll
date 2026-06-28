@@ -1,0 +1,114 @@
+---
+import Base from '../../layouts/Base.astro';
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (async () => {
+  const projets = await getCollection('projets', ({ data }) => !data.brouillon);
+  return projets.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+// Fiche technique — n'affiche que les champs renseignés
+const fiche = [
+  ['Programme', d.programme],
+  ['Lieu', d.lieu],
+  ['Année', String(d.annee)],
+  ['Surface', d.surface],
+  ['Maîtrise d’ouvrage', d.maitrise_ouvrage],
+  ['Statut', d.statut],
+].filter(([, v]) => Boolean(v)) as [string, string][];
+---
+<Base title={`${d.titre} — Agence L&L`} description={d.resume}>
+  <article>
+    <!-- En-tête éditorial -->
+    <header class="section container proj-head">
+      <p class="topline">
+        <span class="num">{d.numero}</span>
+        <span class="meta">{d.programme} · {d.annee} · {d.lieu}</span>
+      </p>
+      <h1>{d.titre}</h1>
+      <p class="lede">{d.resume}</p>
+    </header>
+
+    <!-- Couverture pleine largeur -->
+    {d.couverture && (
+      <figure class="cover container">
+        <Image src={d.couverture} alt={d.titre} widths={[720, 1200, 1800]} sizes="100vw" />
+      </figure>
+    )}
+
+    <!-- Corps + fiche technique -->
+    <div class="section container body-grid">
+      <aside class="fiche">
+        <dl>
+          {fiche.map(([k, v]) => (
+            <div class="fiche-row">
+              <dt class="meta">{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </aside>
+
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+
+    <!-- Galerie -->
+    {d.galerie && d.galerie.length > 0 && (
+      <section class="container galerie">
+        {d.galerie.map((img) => (
+          <figure>
+            <Image src={img.src} alt={img.alt} widths={[600, 1000, 1500]} sizes="(max-width: 52rem) 100vw, 50vw" loading="lazy" />
+            {img.alt && <figcaption class="meta">{img.alt}</figcaption>}
+          </figure>
+        ))}
+      </section>
+    )}
+
+    <nav class="section container back">
+      <a href="/projets">← Tous les projets</a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .proj-head { max-width: 52ch; padding-bottom: var(--space-l); }
+  .topline { display: flex; align-items: baseline; gap: var(--space-s); }
+  .topline .num { font-size: var(--step-2); }
+  .proj-head h1 { margin-block: var(--space-s) var(--space-m); }
+
+  .cover { padding-block: 0; }
+  .cover :global(img) { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+
+  .body-grid {
+    display: grid; grid-template-columns: 16rem 1fr; gap: var(--space-2xl);
+    align-items: start;
+  }
+  .fiche { position: sticky; top: 6rem; }
+  .fiche-row { padding-block: var(--space-xs); border-top: var(--rule); }
+  .fiche-row:first-child { border-top: 0; }
+  .fiche dt { margin-bottom: 0.15rem; }
+
+  .galerie {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-m); padding-bottom: var(--space-2xl);
+  }
+  .galerie figcaption { margin-top: var(--space-2xs); }
+  .back a { font-family: var(--font-mono); font-size: var(--step--1); }
+
+  @media (max-width: 52rem) {
+    .body-grid { grid-template-columns: 1fr; gap: var(--space-l); }
+    .fiche { position: static; }
+    .galerie { grid-template-columns: 1fr; }
+  }
+</style>
