@@ -1,0 +1,218 @@
+---
+import Base from '../layouts/Base.astro';
+import Monogram from '../components/Monogram.astro';
+import MaterialBand from '../components/MaterialBand.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
+  .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee)
+  .slice(0, 4);
+---
+<Base>
+  <!-- ——— HERO : la thèse de l'agence ——— -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-text">
+        <p class="eyebrow">Agence d'architecture · Paris&nbsp;—&nbsp;Normandie</p>
+        <h1>Réparer, transformer, <em>prolonger</em> le déjà-là.</h1>
+        <p class="lede">
+          Une agence pour une architecture sobre — ancrée dans la matière,
+          attentive au vivant, au service des collectivités et de l'habitat.
+        </p>
+        <a class="hero-cta plain" href="/projets">
+          <span>Voir nos projets</span><span class="arr" aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <div class="seal-col">
+        <Monogram variant="seal" size={224} title="Sceau de l'Agence L&L" />
+      </div>
+    </div>
+
+    <!-- bandeau de matière (placeholder — à remplacer par une photo de chantier) -->
+    <div class="container">
+      <MaterialBand
+        material="pise"
+        caption="Pisé — terre crue · mur intérieur"
+        alt="Détail d'un mur en pisé (terre crue)"
+        class="hero-band"
+      />
+    </div>
+  </section>
+
+  <!-- ——— APPROCHE ——— -->
+  <section class="section container approche" aria-labelledby="approche-h">
+    <div class="section-head">
+      <h2 id="approche-h">Notre approche</h2>
+      <span class="meta">Trois engagements</span>
+    </div>
+
+    <div class="piliers">
+      <article class="pilier">
+        <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M7 12a9 9 0 0 1 16-3" /><path d="M25 20a9 9 0 0 1-16 3" />
+          <path d="M23 5v5h-5" /><path d="M9 27v-5h5" />
+        </svg>
+        <p class="eyebrow tag">— Sobriété</p>
+        <h3>Faire mieux avec moins</h3>
+        <p>
+          Rénover plutôt que démolir, réemployer plutôt que produire. Chaque projet
+          part du diagnostic de l'existant et vise une vraie performance énergétique,
+          pas un label de façade.
+        </p>
+      </article>
+
+      <article class="pilier">
+        <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="5" y="5" width="22" height="22" /><path d="M5 13h22" /><path d="M5 20h22" /><path d="M13 5v22" opacity="0.5" />
+        </svg>
+        <p class="eyebrow tag">— Matière</p>
+        <h3>Construire biosourcé</h3>
+        <p>
+          Pisé, chaux-chanvre, fibre de bois, terre crue. Des matériaux sains, locaux
+          et à faible empreinte, choisis pour le confort qu'ils offrent autant que pour
+          leur bilan carbone.
+        </p>
+      </article>
+
+      <article class="pilier">
+        <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M16 28V12" /><path d="M16 16c0-6 4-10 10-10 0 6-4 10-10 10Z" /><path d="M16 21c0-4-3-7-8-7 0 4 3 7 8 7Z" />
+        </svg>
+        <p class="eyebrow tag">— Vivant</p>
+        <h3>Faire place à la biodiversité</h3>
+        <p>
+          Sols vivants, plantations naturalistes, continuités écologiques.
+          L'architecture compose avec le paysage et le climat plutôt que de s'y imposer.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ——— PROJETS SÉLECTIONNÉS ——— -->
+  <section class="section container projets" aria-labelledby="projets-h">
+    <div class="section-head">
+      <h2 id="projets-h">Projets sélectionnés</h2>
+      <a class="section-link plain" href="/projets">
+        <span>Tous les projets</span><span class="arr" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    {projets.length > 0 ? (
+      <div class="projets-grid">
+        {projets.map((projet) => <ProjectCard projet={projet} />)}
+      </div>
+    ) : (
+      <p class="lede">Les premiers projets seront publiés ici très bientôt.</p>
+    )}
+  </section>
+
+  <!-- ——— CONTACT ——— -->
+  <section class="section container contact" id="contact" aria-labelledby="contact-h">
+    <div class="contact-inner">
+      <div>
+        <h2 id="contact-h">Un lieu, un programme, une <em>intention</em>&nbsp;?</h2>
+        <a class="contact-cta plain" href="/contact">
+          <span>Écrire à l'agence</span><span class="arr" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="contact-side">
+        <strong>Agence L&amp;L</strong><br />
+        Julien&nbsp;&amp;&nbsp;Zoé Lenglet<br />
+        Architectes DE · HMONP<br />
+        Paris&nbsp;—&nbsp;Normandie<br />
+        <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* HERO */
+  .hero { padding-block: clamp(2.6rem, 7vw, 6rem) clamp(2rem, 5vw, 3.5rem); }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: start;
+  }
+  .hero h1 { margin-top: 0.9rem; max-width: 14ch; }
+  .hero .lede { max-width: 34ch; margin-top: 1.5rem; }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 0.6ch;
+    margin-top: 1.9rem;
+    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+    padding-bottom: 0.25rem;
+    transition: gap 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease);
+  }
+  .hero-cta .arr { color: var(--seal); transition: transform 0.25s var(--ease); }
+  .hero-cta:hover { gap: 1.1ch; border-color: var(--seal); }
+  .hero-cta:hover .arr { transform: translateX(3px); }
+
+  .seal-col { display: flex; justify-content: flex-end; padding-top: 0.4rem; color: var(--seal); }
+  .seal-col :global(svg) {
+    width: clamp(170px, 22vw, 236px); height: auto;
+    animation: press 0.7s var(--ease) both 0.15s;
+    transform-origin: center;
+  }
+  @keyframes press {
+    from { opacity: 0; transform: scale(1.06) rotate(-3deg); }
+    to   { opacity: 1; transform: scale(1) rotate(0); }
+  }
+  .hero-band { margin-top: clamp(2.4rem, 6vw, 4.2rem); }
+
+  /* APPROCHE */
+  .piliers {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.4rem, 3vw, 2.6rem);
+  }
+  .pilier { padding-top: 0.4rem; }
+  .glyph { height: 30px; width: auto; margin-bottom: 1rem; color: var(--terracotta); }
+  .pilier .tag { display: block; margin-bottom: 0.7rem; letter-spacing: 0.12em; }
+  .pilier h3 { font-size: var(--step-1); margin-bottom: 0.55rem; }
+  .pilier p { color: var(--ink-soft); max-width: 34ch; }
+
+  /* PROJETS */
+  .projets-grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.6rem, 4vw, 3.4rem) clamp(1.6rem, 4vw, 3rem);
+  }
+
+  /* CONTACT */
+  .contact-inner {
+    border-top: 1px solid var(--ink);
+    padding-top: clamp(2rem, 5vw, 3.5rem);
+    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem); align-items: end;
+  }
+  .contact-inner h2 {
+    font-size: var(--step-3); line-height: 1.05; max-width: 16ch;
+    font-variation-settings: 'opsz' 120, 'SOFT' 30;
+  }
+  .contact-cta {
+    display: inline-flex; align-items: center; gap: 0.6ch; margin-top: 1.6rem;
+    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1.5px solid var(--ink); padding-bottom: 0.3rem;
+    transition: gap 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+  .contact-cta .arr { color: var(--seal); }
+  .contact-cta:hover { gap: 1.1ch; border-color: var(--seal); }
+  .contact-side {
+    font-family: var(--font-mono); font-size: var(--step--1); line-height: 1.9;
+    color: var(--ink-soft); letter-spacing: 0.03em;
+  }
+  .contact-side strong { color: var(--ink); font-weight: 600; }
+
+  /* Responsive */
+  @media (max-width: 56rem) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .seal-col { justify-content: flex-start; order: -1; }
+    .piliers { grid-template-columns: 1fr; gap: 2rem; }
+    .projets-grid { grid-template-columns: 1fr; gap: 2.6rem; }
+    .contact-inner { grid-template-columns: 1fr; align-items: start; }
+  }
+</style>

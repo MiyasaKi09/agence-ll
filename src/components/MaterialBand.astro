@@ -1,0 +1,51 @@
+---
+/**
+ * Bandeau de matière — pleine largeur, texture générée en CSS (placeholder).
+ * Sert le brief « photographie de matière en pleine page » SANS dépendre d'une
+ * image : pisé, chaux-chanvre, fibre de bois. À remplacer par une vraie photo
+ * (composant <Image> d'astro:assets) quand les visuels de chantier arrivent.
+ */
+interface Props {
+  material?: 'pise' | 'chanvre' | 'bois';
+  /** légende affichée dans la pastille (ex. "Pisé — terre crue · mur intérieur") */
+  caption: string;
+  /** description accessible de l'image */
+  alt?: string;
+  class?: string;
+}
+const { material = 'pise', caption, alt, class: cls = '' } = Astro.props;
+---
+<div class={`band mat mat-${material} ${cls}`} role="img" aria-label={alt ?? caption}>
+  <span class="band-cap">
+    <span class="dot" aria-hidden="true"></span>{caption}
+  </span>
+</div>
+
+<style>
+  .band {
+    height: clamp(220px, 34vw, 380px);
+  }
+  .band-cap {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.8ch;
+    background: color-mix(in srgb, var(--ink) 80%, transparent);
+    color: var(--paper);
+    padding: 0.5rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .band-cap .dot {
+    width: 6px;
+    height: 6px;
+    background: var(--seal);
+    border-radius: 50%;
+    flex: none;
+  }
+</style>

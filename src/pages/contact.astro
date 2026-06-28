@@ -1,0 +1,107 @@
+---
+import Base from '../layouts/Base.astro';
+
+// FORMULAIRE — site statique, donc il faut un service côté serveur :
+//  • Le plus simple : Formspree (remplace l'action ci-dessous par ton endpoint).
+//  • Sans tiers : passe le site en `output: 'server'` + adaptateur @astrojs/vercel,
+//    crée une route API qui envoie l'e-mail via Resend (clé en variable d'env).
+// Voir CLAUDE.md › « Formulaire de contact ».
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
+---
+<Base
+  title="Contact — Agence L&L"
+  description="Contacter l'Agence L&L pour un projet de rénovation énergétique, de logement ou d'équipement public."
+>
+  <section class="section container contact-grid">
+    <div class="intro stack">
+      <p class="eyebrow">Contact</p>
+      <h1>Parlons de votre <em>projet</em>.</h1>
+      <p class="lede">
+        Maîtrise d’ouvrage publique ou privée, concours, faisabilité, rénovation —
+        écrivez-nous, nous revenons vers vous rapidement.
+      </p>
+      <div class="coords stack">
+        <p>
+          <span class="meta">E-mail</span><br />
+          <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a>
+        </p>
+        <p>
+          <span class="meta">Zone d’intervention</span><br />
+          Paris · Normandie
+        </p>
+      </div>
+    </div>
+
+    <form class="form" action={FORMSPREE_ENDPOINT} method="POST">
+      <div class="field">
+        <label for="nom">Nom</label>
+        <input id="nom" name="nom" type="text" required autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="organisation">Organisation <span class="opt">(facultatif)</span></label>
+        <input id="organisation" name="organisation" type="text" autocomplete="organization" />
+      </div>
+      <div class="field">
+        <label for="type">Type de projet</label>
+        <select id="type" name="type">
+          <option value="renovation">Rénovation énergétique</option>
+          <option value="logement">Logement</option>
+          <option value="equipement">Équipement public</option>
+          <option value="faisabilite">Faisabilité / concours</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="6" required></textarea>
+      </div>
+      <button type="submit" class="submit">Envoyer →</button>
+      <p class="form-note meta">
+        En envoyant ce formulaire, vous acceptez d’être recontacté·e par l’Agence L&amp;L.
+      </p>
+    </form>
+  </section>
+</Base>
+
+<style>
+  .contact-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2xl);
+    align-items: start;
+  }
+  .intro h1 { margin-block: var(--space-2xs) var(--space-xs); }
+  .coords { margin-top: var(--space-l); }
+
+  .form { display: grid; gap: var(--space-m); max-width: 34rem; }
+  .field { display: grid; gap: 0.35rem; }
+  label { font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em; }
+  .opt { color: var(--stone); text-transform: none; letter-spacing: 0; }
+  input, select, textarea {
+    background: var(--paper-deep);
+    border: var(--rule);
+    padding: 0.7rem 0.85rem;
+    font-size: var(--step-0);
+    border-radius: var(--radius);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--seal); outline-offset: 1px;
+    border-color: transparent;
+  }
+  textarea { resize: vertical; }
+  .submit {
+    justify-self: start;
+    font-family: var(--font-display); font-size: var(--step-1);
+    color: var(--paper); background: var(--ink);
+    padding: 0.6rem 1.4rem;
+    transition: background 0.2s var(--ease);
+  }
+  .submit:hover { background: var(--terracotta-deep); }
+  .form-note { margin-top: calc(-1 * var(--space-2xs)); }
+
+  @media (max-width: 52rem) {
+    .contact-grid { grid-template-columns: 1fr; gap: var(--space-xl); }
+  }
+</style>

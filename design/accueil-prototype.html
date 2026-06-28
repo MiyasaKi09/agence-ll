@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agence L&L — Aperçu d'accueil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500..700&family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Hanken+Grotesk:wght@300..800&family=JetBrains+Mono:wght@400..600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#EEEAE1;
+    --paper-2:#E7E1D5;
+    --ink:#1C1A17;
+    --ink-soft:#4A463F;
+    --terracotta:#A24B2C;
+    --terracotta-deep:#7E3A22;
+    --seal:#C5392B;
+    --moss:#3E4A36;
+    --stone:#C9C2B4;
+    --line:rgba(28,26,23,0.14);
+    --line-soft:rgba(28,26,23,0.08);
+
+    --font-display:'Fraunces',Georgia,'Times New Roman',serif;
+    --font-body:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',monospace;
+    --font-script:'Caveat','Segoe Script',cursive;
+
+    --step--1:clamp(.78rem,.75rem + .15vw,.86rem);
+    --step-0:clamp(1rem,.96rem + .2vw,1.1rem);
+    --step-1:clamp(1.18rem,1.08rem + .4vw,1.4rem);
+    --step-2:clamp(1.45rem,1.25rem + .8vw,1.95rem);
+    --step-3:clamp(1.9rem,1.5rem + 1.5vw,2.9rem);
+    --step-4:clamp(2.6rem,1.9rem + 2.9vw,4.6rem);
+
+    --maxw:1240px;
+    --pad:clamp(1.4rem,5vw,4.5rem);
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:var(--step-0);
+    font-weight:380;
+    line-height:1.6;
+    letter-spacing:.005em;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* subtle paper tooth — serves the "printed matter" brief, kept faint */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    pointer-events:none;
+    opacity:.035;
+    mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection{background:var(--seal);color:var(--paper);}
+  a{color:inherit;text-decoration:none;}
+  img{max-width:100%;display:block;}
+
+  :focus-visible{
+    outline:2px solid var(--seal);
+    outline-offset:3px;
+  }
+
+  .skip{
+    position:absolute;left:-9999px;top:0;
+    background:var(--ink);color:var(--paper);
+    padding:.6rem 1rem;font-family:var(--font-mono);font-size:.8rem;z-index:10000;
+  }
+  .skip:focus{left:1rem;top:1rem;}
+
+  .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:var(--pad);}
+
+  /* registration / proof marks */
+  .regmark{position:fixed;width:15px;height:15px;z-index:50;pointer-events:none;opacity:.5;}
+  .regmark::before,.regmark::after{content:"";position:absolute;background:var(--terracotta);}
+  .regmark::before{left:50%;top:0;width:1px;height:100%;transform:translateX(-.5px);}
+  .regmark::after{top:50%;left:0;height:1px;width:100%;transform:translateY(-.5px);}
+  .regmark.tl{left:14px;top:14px;}
+  .regmark.tr{right:14px;top:14px;}
+  .regmark.bl{left:14px;bottom:14px;}
+  .regmark.br{right:14px;bottom:14px;}
+  @media (max-width:760px){.regmark{display:none;}}
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:var(--step--1);
+    font-weight:500;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--terracotta-deep);
+  }
+  .meta{
+    font-family:var(--font-mono);
+    font-size:.74rem;
+    font-weight:440;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+
+  /* ---------- header ---------- */
+  .site-header{
+    position:sticky;top:0;z-index:40;
+    background:color-mix(in srgb,var(--paper) 86%,transparent);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-block:1.05rem;gap:1rem;
+  }
+  .brand{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:1.45rem;
+    letter-spacing:.02em;
+    font-variation-settings:'opsz' 40,'SOFT' 30;
+    display:flex;align-items:baseline;gap:.5ch;
+  }
+  .brand .amp{color:var(--seal);font-style:italic;}
+  nav.main{display:flex;align-items:center;gap:clamp(1rem,2.6vw,2.4rem);}
+  nav.main a{
+    font-family:var(--font-mono);
+    font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-soft);
+    padding-block:.2rem;
+    position:relative;
+    transition:color .25s var(--ease);
+  }
+  nav.main a::after{
+    content:"";position:absolute;left:0;bottom:-2px;height:1px;width:0;
+    background:var(--seal);transition:width .28s var(--ease);
+  }
+  nav.main a:hover{color:var(--ink);}
+  nav.main a:hover::after{width:100%;}
+  .lang{
+    font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;
+    color:var(--ink-soft);display:flex;gap:.35ch;align-items:center;
+    border:1px solid var(--line);padding:.25rem .55rem;border-radius:2px;
+  }
+  .lang .on{color:var(--seal);font-weight:600;}
+  .lang .sep{opacity:.4;}
+  @media (max-width:680px){
+    nav.main .navlink{display:none;}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding-top:clamp(2.6rem,7vw,6rem);padding-bottom:clamp(2rem,5vw,3.5rem);position:relative;}
+  .hero-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:clamp(1.5rem,4vw,3rem);
+    align-items:start;
+  }
+  .hero h1{
+    font-family:var(--font-display);
+    font-weight:560;
+    font-size:var(--step-4);
+    line-height:1.02;
+    letter-spacing:-.018em;
+    margin:.9rem 0 0;
+    max-width:14ch;
+    font-variation-settings:'opsz' 144,'SOFT' 28;
+    text-wrap:balance;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--terracotta);
+    font-variation-settings:'opsz' 144,'SOFT' 60;
+  }
+  .hero .lede{
+    font-size:var(--step-1);
+    line-height:1.4;
+    max-width:34ch;
+    margin:1.5rem 0 0;
+    color:var(--ink-soft);
+    font-weight:380;
+  }
+  .hero-cta{
+    display:inline-flex;align-items:center;gap:.6ch;
+    margin-top:1.9rem;
+    font-family:var(--font-mono);font-size:.82rem;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink);
+    border-bottom:1.5px solid var(--ink);
+    padding-bottom:.25rem;
+    transition:gap .25s var(--ease),border-color .25s var(--ease),color .25s var(--ease);
+  }
+  .hero-cta .arr{color:var(--seal);transition:transform .25s var(--ease);}
+  .hero-cta:hover{gap:1.1ch;border-color:var(--seal);}
+  .hero-cta:hover .arr{transform:translateX(3px);}
+
+  .seal-col{display:flex;justify-content:flex-end;padding-top:.4rem;}
+  .seal{width:clamp(170px,22vw,236px);height:auto;color:var(--seal);}
+  .seal .ring{
+    font-family:var(--font-display);
+    font-size:9.4px;
+    font-weight:560;
+    letter-spacing:1.5px;
+    fill:var(--seal);
+    text-transform:uppercase;
+  }
+
+  /* ---------- material band ---------- */
+  .band{
+    margin-top:clamp(2.4rem,6vw,4.2rem);
+    position:relative;
+    height:clamp(220px,34vw,380px);
+    border:1px solid var(--line);
+    overflow:hidden;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        #b58457 0,#b58457 17px,
+        #a9764a 17px,#a9764a 21px,
+        #bd8d62 21px,#bd8d62 41px,
+        #9f6c44 41px,#9f6c44 45px,
+        #b07f54 45px,#b07f54 64px,
+        #a87248 64px,#a87248 68px
+      );
+  }
+  .band::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(105deg,rgba(28,26,23,.16),rgba(28,26,23,0) 42%);
+  }
+  .band::after{
+    content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  }
+  .band-cap{
+    position:absolute;left:0;bottom:0;z-index:2;
+    display:flex;align-items:center;gap:.8ch;
+    background:color-mix(in srgb,var(--ink) 78%,transparent);
+    color:var(--paper);
+    padding:.5rem .9rem;
+    font-family:var(--font-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  }
+  .band-cap .dot{width:6px;height:6px;background:var(--seal);border-radius:50%;}
+
+  /* ---------- section scaffolding ---------- */
+  .section{padding-block:clamp(3.2rem,8vw,6rem);}
+  .section-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    gap:1rem;flex-wrap:wrap;
+    border-top:1px solid var(--ink);
+    padding-top:1rem;margin-bottom:clamp(1.8rem,4vw,3rem);
+  }
+  .section-head h2{
+    font-family:var(--font-display);
+    font-weight:540;
+    font-size:var(--step-2);
+    letter-spacing:-.01em;
+    margin:0;
+    font-variation-settings:'opsz' 80,'SOFT' 24;
+  }
+  .section-link{
+    font-family:var(--font-mono);font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-soft);display:inline-flex;gap:.5ch;align-items:center;
+    transition:color .25s var(--ease),gap .25s var(--ease);
+  }
+  .section-link .arr{color:var(--seal);}
+  .section-link:hover{color:var(--ink);gap:.9ch;}
+
+  /* ---------- approach / piliers ---------- */
+  .piliers{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:clamp(1.4rem,3vw,2.6rem);
+  }
+  .pilier{padding-top:.4rem;}
+  .pilier .glyph{height:30px;margin-bottom:1rem;color:var(--terracotta);}
+  .pilier h3{
+    font-family:var(--font-display);
+    font-weight:520;
+    font-size:var(--step-1);
+    margin:0 0 .55rem;
+    letter-spacing:-.005em;
+    font-variation-settings:'opsz' 50,'SOFT' 30;
+  }
+  .pilier .tag{display:block;margin-bottom:.7rem;}
+  .pilier p{margin:0;color:var(--ink-soft);font-size:.96rem;line-height:1.55;max-width:34ch;}
+
+  /* ---------- projects ---------- */
+  .projets-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:clamp(1.6rem,4vw,3.4rem) clamp(1.6rem,4vw,3rem);
+  }
+  .projet{position:relative;}
+  .projet .num{
+    position:absolute;top:-22px;left:-10px;z-index:3;
+    font-family:var(--font-script);
+    font-size:clamp(2rem,4vw,2.7rem);
+    font-weight:700;
+    color:var(--seal);
+    transform:rotate(-8deg);
+    line-height:1;
+    pointer-events:none;
+    text-shadow:0 1px 0 rgba(238,234,225,.6);
+  }
+  .projet-frame{
+    position:relative;
+    aspect-ratio:4/3;
+    border:1px solid var(--line);
+    overflow:hidden;
+    background:var(--stone);
+  }
+  .projet-frame::after{
+    content:"";position:absolute;inset:0;opacity:.45;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+    pointer-events:none;
+  }
+  .mat-chanvre{
+    background:
+      radial-gradient(circle at 30% 40%,rgba(255,255,255,.35),transparent 9px),
+      radial-gradient(circle at 70% 65%,rgba(120,90,60,.18),transparent 7px),
+      radial-gradient(circle at 50% 80%,rgba(255,255,255,.25),transparent 6px),
+      linear-gradient(150deg,#d8d0bd,#c8bda4);
+    background-size:34px 34px,28px 28px,40px 40px,100% 100%;
+  }
+  .mat-bois{
+    background:
+      repeating-linear-gradient(94deg,
+        #b88a5a 0,#b88a5a 13px,
+        #ac7d4d 13px,#ac7d4d 15px,
+        #c2966a 15px,#c2966a 30px,
+        #a5743f 30px,#a5743f 32px);
+  }
+  .projet-frame .scrim{
+    position:absolute;inset:0;
+    background:linear-gradient(115deg,rgba(28,26,23,.12),transparent 48%);
+    z-index:1;
+  }
+  .projet:hover .projet-frame{border-color:var(--terracotta);}
+  .projet-body{padding-top:1rem;}
+  .projet-body h3{
+    font-family:var(--font-display);
+    font-weight:520;
+    font-size:var(--step-1);
+    margin:0 0 .5rem;
+    font-variation-settings:'opsz' 48,'SOFT' 26;
+  }
+  .projet-meta{display:flex;flex-wrap:wrap;gap:.4ch .9ch;align-items:center;}
+  .projet-meta .sep{color:var(--terracotta);opacity:.7;}
+  .statut{
+    color:var(--moss);
+    border:1px solid color-mix(in srgb,var(--moss) 40%,transparent);
+    padding:.05rem .45rem;border-radius:2px;font-size:.66rem;
+  }
+
+  /* ---------- contact ---------- */
+  .contact-inner{
+    border-top:1px solid var(--ink);
+    padding-top:clamp(2rem,5vw,3.5rem);
+    display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);
+    gap:clamp(1.5rem,4vw,3rem);align-items:end;
+  }
+  .contact-inner h2{
+    font-family:var(--font-display);
+    font-weight:540;
+    font-size:var(--step-3);
+    line-height:1.05;
+    letter-spacing:-.015em;
+    margin:0;max-width:16ch;
+    font-variation-settings:'opsz' 120,'SOFT' 30;
+  }
+  .contact-inner h2 em{font-style:italic;color:var(--terracotta);}
+  .contact-cta{
+    display:inline-flex;align-items:center;gap:.6ch;
+    font-family:var(--font-mono);font-size:.86rem;letter-spacing:.05em;text-transform:uppercase;
+    border-bottom:1.5px solid var(--ink);padding-bottom:.3rem;
+    transition:gap .25s var(--ease),border-color .25s var(--ease);
+  }
+  .contact-cta .arr{color:var(--seal);}
+  .contact-cta:hover{gap:1.1ch;border-color:var(--seal);}
+  .contact-side{font-family:var(--font-mono);font-size:.8rem;line-height:1.9;color:var(--ink-soft);letter-spacing:.03em;}
+  .contact-side strong{color:var(--ink);font-weight:600;}
+
+  /* ---------- footer ---------- */
+  .site-footer{border-top:1px solid var(--line);margin-top:clamp(3rem,7vw,5rem);padding-block:clamp(2.2rem,5vw,3.4rem);}
+  .footer-row{display:flex;justify-content:space-between;gap:2rem;flex-wrap:wrap;align-items:flex-start;}
+  .footer-brand{display:flex;gap:1rem;align-items:center;}
+  .footer-seal{width:54px;height:54px;color:var(--terracotta);flex:none;}
+  .footer-brand .name{font-family:var(--font-display);font-weight:600;font-size:1.2rem;line-height:1.1;font-variation-settings:'opsz' 40,'SOFT' 28;}
+  .footer-brand .sub{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-top:.3rem;}
+  .footer-cols{display:flex;gap:clamp(1.6rem,4vw,3.4rem);flex-wrap:wrap;}
+  .footer-cols .col{font-family:var(--font-mono);font-size:.76rem;line-height:1.85;color:var(--ink-soft);letter-spacing:.03em;}
+  .footer-cols .col .h{color:var(--ink);text-transform:uppercase;letter-spacing:.13em;font-size:.66rem;display:block;margin-bottom:.4rem;}
+  .footer-cols .col a:hover{color:var(--seal);}
+  .colophon{
+    margin-top:2.4rem;padding-top:1rem;border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+    font-family:var(--font-mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);opacity:.85;
+  }
+  .colophon .epreuve{color:var(--terracotta-deep);}
+
+  /* ---------- light entrance motion (decision: léger) ---------- */
+  @keyframes press{
+    from{opacity:0;transform:scale(1.06) rotate(-3deg);}
+    to{opacity:1;transform:scale(1) rotate(0);}
+  }
+  @keyframes rise{
+    from{opacity:0;transform:translateY(14px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .seal{animation:press .7s var(--ease) both .15s;transform-origin:center;}
+  .anim{opacity:0;animation:rise .8s var(--ease) both;}
+  .d1{animation-delay:.05s;} .d2{animation-delay:.16s;} .d3{animation-delay:.27s;} .d4{animation-delay:.38s;}
+
+  @media (prefers-reduced-motion:reduce){
+    .seal,.anim{animation:none;opacity:1;transform:none;}
+    *{scroll-behavior:auto !important;}
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:880px){
+    .hero-grid{grid-template-columns:1fr;}
+    .seal-col{justify-content:flex-start;order:-1;}
+    .contact-inner{grid-template-columns:1fr;align-items:start;}
+  }
+  @media (max-width:680px){
+    .piliers{grid-template-columns:1fr;gap:2rem;}
+    .projets-grid{grid-template-columns:1fr;gap:2.6rem;}
+    .projet .num{top:-18px;left:-4px;}
+    .footer-row{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+
+<span class="regmark tl" aria-hidden="true"></span>
+<span class="regmark tr" aria-hidden="true"></span>
+<span class="regmark bl" aria-hidden="true"></span>
+<span class="regmark br" aria-hidden="true"></span>
+
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="#" aria-label="Agence L et L — accueil">L<span class="amp">&amp;</span>L</a>
+    <nav class="main" aria-label="Navigation principale">
+      <a class="navlink" href="#">Agence</a>
+      <a class="navlink" href="#projets">Projets</a>
+      <a class="navlink" href="#contact">Contact</a>
+      <span class="lang" title="Site bilingue — français actif"><span class="on">FR</span><span class="sep">·</span><span>EN</span></span>
+    </nav>
+  </div>
+</header>
+
+<main id="contenu">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-text">
+        <p class="eyebrow anim d1">Agence d'architecture · Paris — Normandie</p>
+        <h1 class="anim d2">Réparer, transformer, <em>prolonger</em> le déjà-là.</h1>
+        <p class="lede anim d3">Une agence pour une architecture sobre — ancrée dans la matière, attentive au vivant, au service des collectivités et de l'habitat.</p>
+        <a class="hero-cta anim d4" href="#projets"><span>Voir nos projets</span><span class="arr" aria-hidden="true">→</span></a>
+      </div>
+      <div class="seal-col">
+        <!-- SIGNATURE : sceau-poulpe (linogravure) -->
+        <svg class="seal" viewBox="0 0 240 240" role="img" aria-labelledby="seal-t seal-d">
+          <title id="seal-t">Sceau de l'Agence L&L</title>
+          <desc id="seal-d">Un tampon circulaire à l'encre rouge représentant une pieuvre stylisée, entouré du nom de l'agence.</desc>
+          <defs>
+            <path id="sealArc" d="M 120,22 A 98,98 0 1 1 119.9,22" fill="none"/>
+          </defs>
+          <circle cx="120" cy="120" r="112" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <circle cx="120" cy="120" r="92" fill="none" stroke="currentColor" stroke-width="0.9"/>
+          <text class="ring"><textPath href="#sealArc" startOffset="0" textLength="616" lengthAdjust="spacing">· AGENCE L&amp;L · ARCHITECTURE · ÉCOLOGIE · PARIS — NORMANDIE </textPath></text>
+
+          <!-- octopus, linocut -->
+          <g fill="currentColor">
+            <!-- back arms (behind head) -->
+            <path d="M101,116 C90,108 80,108 74,116 C71,120 73,125 78,124 C82,123 86,120 92,121 C97,122 101,124 105,127 Z" opacity="0.92"/>
+            <path d="M139,116 C150,108 160,108 166,116 C169,120 167,125 162,124 C158,123 154,120 148,121 C143,122 139,124 135,127 Z" opacity="0.92"/>
+            <!-- head / mantle with eye cut-outs (evenodd) -->
+            <path fill-rule="evenodd" d="
+              M102,127
+              C90,119 86,105 90,93
+              C95,77 108,69 120,69
+              C132,69 145,77 150,93
+              C154,105 150,119 138,127
+              C132,131 108,131 102,127 Z
+              M99,101 a7,5 0 1,0 14,0 a7,5 0 1,0 -14,0 Z
+              M127,101 a7,5 0 1,0 14,0 a7,5 0 1,0 -14,0 Z"/>
+            <!-- pupils -->
+            <rect x="101.5" y="99.5" width="9" height="3" rx="1.4"/>
+            <rect x="129.5" y="99.5" width="9" height="3" rx="1.4"/>
+            <!-- front arms -->
+            <path d="M101,124 C87,128 75,138 71,152 C68,162 71,170 79,172 C83,173 87,170 87,165 C82,166 77,162 79,154 C82,144 93,134 105,130 Z"/>
+            <path d="M107,127 C99,140 93,154 97,166 C100,174 108,174 110,167 C105,167 102,162 103,154 C104,146 109,137 114,131 Z"/>
+            <path d="M120,129 C117,144 116,158 121,170 C124,177 131,176 132,169 C127,168 125,162 125,153 C125,144 127,137 129,131 Z"/>
+            <path d="M133,127 C141,140 147,154 143,166 C140,174 132,174 130,167 C135,167 138,162 137,154 C136,146 131,137 126,131 Z"/>
+            <path d="M139,124 C153,128 165,138 169,152 C172,162 169,170 161,172 C157,173 153,170 153,165 C158,166 163,162 161,154 C158,144 147,134 135,130 Z"/>
+            <!-- suckers (carved negative space) -->
+            <circle cx="119" cy="146" r="1.5" fill="var(--paper)"/>
+            <circle cx="120" cy="155" r="1.5" fill="var(--paper)"/>
+            <circle cx="122" cy="163" r="1.4" fill="var(--paper)"/>
+            <circle cx="104" cy="150" r="1.3" fill="var(--paper)"/>
+            <circle cx="136" cy="150" r="1.3" fill="var(--paper)"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- material band : pisé -->
+    <div class="wrap">
+      <div class="band anim d4" role="img" aria-label="Détail d'un mur en pisé (terre crue)">
+        <div class="band-cap"><span class="dot" aria-hidden="true"></span>Pisé — terre crue · mur intérieur</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPROCHE -->
+  <section class="section" aria-labelledby="approche-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="approche-h">Notre approche</h2>
+        <span class="meta">Trois engagements</span>
+      </div>
+      <div class="piliers">
+
+        <div class="pilier">
+          <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M7 12a9 9 0 0 1 16-3"/><path d="M25 20a9 9 0 0 1-16 3"/>
+            <path d="M23 5v5h-5"/><path d="M9 27v-5h5"/>
+          </svg>
+          <span class="eyebrow tag">— Sobriété</span>
+          <h3>Faire mieux avec moins</h3>
+          <p>Rénover plutôt que démolir, réemployer plutôt que produire. Chaque projet part du diagnostic de l'existant et vise une vraie performance énergétique, pas un label de façade.</p>
+        </div>
+
+        <div class="pilier">
+          <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <rect x="5" y="5" width="22" height="22"/><path d="M5 13h22"/><path d="M5 20h22"/><path d="M13 5v22" opacity="0.5"/>
+          </svg>
+          <span class="eyebrow tag">— Matière</span>
+          <h3>Construire biosourcé</h3>
+          <p>Pisé, chaux-chanvre, fibre de bois, terre crue. Des matériaux sains, locaux et à faible empreinte, choisis pour le confort qu'ils offrent autant que pour leur bilan carbone.</p>
+        </div>
+
+        <div class="pilier">
+          <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M16 28V12"/><path d="M16 16c0-6 4-10 10-10 0 6-4 10-10 10Z"/><path d="M16 21c0-4-3-7-8-7 0 4 3 7 8 7Z"/>
+          </svg>
+          <span class="eyebrow tag">— Vivant</span>
+          <h3>Faire place à la biodiversité</h3>
+          <p>Sols vivants, plantations naturalistes, continuités écologiques. L'architecture compose avec le paysage et le climat plutôt que de s'y imposer.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJETS -->
+  <section class="section" id="projets" aria-labelledby="projets-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="projets-h">Projets sélectionnés</h2>
+        <a class="section-link" href="#"><span>Tous les projets</span><span class="arr" aria-hidden="true">→</span></a>
+      </div>
+      <div class="projets-grid">
+
+        <article class="projet">
+          <span class="num" aria-hidden="true">N°024</span>
+          <div class="projet-frame mat-chanvre">
+            <span class="scrim" aria-hidden="true"></span>
+          </div>
+          <div class="projet-body">
+            <h3>Réhabilitation thermique d'un îlot</h3>
+            <div class="projet-meta">
+              <span class="meta">Rouen</span><span class="sep meta" aria-hidden="true">/</span>
+              <span class="meta">2025</span><span class="sep meta" aria-hidden="true">/</span>
+              <span class="meta">Logement</span>
+              <span class="statut meta">Chantier</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="projet">
+          <span class="num" aria-hidden="true">N°018</span>
+          <div class="projet-frame mat-bois">
+            <span class="scrim" aria-hidden="true"></span>
+          </div>
+          <div class="projet-body">
+            <h3>Vingt logements sociaux passifs</h3>
+            <div class="projet-meta">
+              <span class="meta">Évreux</span><span class="sep meta" aria-hidden="true">/</span>
+              <span class="meta">2024</span><span class="sep meta" aria-hidden="true">/</span>
+              <span class="meta">Bailleur social</span>
+              <span class="statut meta">Livré</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section" id="contact" aria-labelledby="contact-h">
+    <div class="wrap">
+      <div class="contact-inner">
+        <div>
+          <h2 id="contact-h">Un lieu, un programme, une <em>intention</em> ?</h2>
+          <a class="contact-cta" href="mailto:contact@agence-ll.fr" style="margin-top:1.6rem;"><span>Écrire à l'agence</span><span class="arr" aria-hidden="true">→</span></a>
+        </div>
+        <div class="contact-side">
+          <strong>Agence L&amp;L</strong><br>
+          Julien &amp; Zoé Lenglet<br>
+          Architectes DE · HMONP<br>
+          Paris — Normandie<br>
+          contact@agence-ll.fr
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-row">
+      <div class="footer-brand">
+        <svg class="footer-seal" viewBox="0 0 240 240" role="img" aria-label="Sceau de l'agence">
+          <circle cx="120" cy="120" r="112" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="120" cy="120" r="92" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <g fill="currentColor">
+            <path fill-rule="evenodd" d="M102,127 C90,119 86,105 90,93 C95,77 108,69 120,69 C132,69 145,77 150,93 C154,105 150,119 138,127 C132,131 108,131 102,127 Z M99,101 a7,5 0 1,0 14,0 a7,5 0 1,0 -14,0 Z M127,101 a7,5 0 1,0 14,0 a7,5 0 1,0 -14,0 Z"/>
+            <path d="M101,124 C87,128 75,138 71,152 C68,162 71,170 79,172 C83,173 87,170 87,165 C82,166 77,162 79,154 C82,144 93,134 105,130 Z"/>
+            <path d="M120,129 C117,144 116,158 121,170 C124,177 131,176 132,169 C127,168 125,162 125,153 C125,144 127,137 129,131 Z"/>
+            <path d="M139,124 C153,128 165,138 169,152 C172,162 169,170 161,172 C157,173 153,170 153,165 C158,166 163,162 161,154 C158,144 147,134 135,130 Z"/>
+          </g>
+        </svg>
+        <div>
+          <div class="name">Agence L&amp;L</div>
+          <div class="sub">Architecture · Rénovation · Vivant</div>
+        </div>
+      </div>
+      <div class="footer-cols">
+        <div class="col">
+          <span class="h">Agence</span>
+          <a href="#">Manifeste</a><br>
+          <a href="#">Savoir-faire</a><br>
+          <a href="#">Équipe</a>
+        </div>
+        <div class="col">
+          <span class="h">Projets</span>
+          <a href="#">Logement</a><br>
+          <a href="#">Équipements</a><br>
+          <a href="#">Rénovation</a>
+        </div>
+        <div class="col">
+          <span class="h">Contact</span>
+          <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a><br>
+          Paris — Normandie<br>
+          <a href="#">LinkedIn</a> · <a href="#">Instagram</a>
+        </div>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© 2026 Agence L&amp;L — Architectes DE</span>
+      <span class="epreuve">Épreuve visuelle · accueil · v1 — visuels temporaires</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

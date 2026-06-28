@@ -1,0 +1,126 @@
+---
+import Monogram from './Monogram.astro';
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+
+const nav = [
+  { href: '/agence', label: 'Agence' },
+  { href: '/projets', label: 'Projets' },
+  { href: '/contact', label: 'Contact' },
+];
+---
+<header class="site-header">
+  <div class="container bar">
+    <a href="/" class="brand plain" aria-label="Agence L&L — accueil">
+      <Monogram variant="mark" size={42} />
+      <span class="wordmark">Agence&nbsp;L<span class="amp">&amp;</span>L</span>
+    </a>
+
+    <nav aria-label="Navigation principale">
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="nav-link plain"
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >{item.label}</a>
+          </li>
+        ))}
+      </ul>
+
+      {/* Indicateur bilingue (la maquette le prévoit). L'EN sera activé quand
+          l'i18n natif d'Astro sera câblé — voir CLAUDE.md §12. Pour l'instant,
+          repère statique : FR actif, EN à venir (pas de lien mort). */}
+      <span class="lang" role="note" aria-label="Site en français — version anglaise à venir">
+        <span class="on">FR</span><span class="sep" aria-hidden="true">·</span><span class="off">EN</span>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    backdrop-filter: saturate(1.2) blur(8px);
+    -webkit-backdrop-filter: saturate(1.2) blur(8px);
+    border-bottom: var(--rule);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    min-height: 4.5rem;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .brand :global(svg) { color: var(--ink); flex: none; }
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-variation-settings: 'opsz' 40, 'SOFT' 28;
+    white-space: nowrap;
+  }
+  .wordmark .amp { color: var(--seal); font-style: italic; }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 3vw, 2.2rem);
+  }
+  nav ul {
+    display: flex;
+    gap: clamp(0.85rem, 3vw, 2.2rem);
+    list-style: none;
+    padding: 0;
+  }
+  .nav-link {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-block: 0.3rem;
+    border-bottom: 1.5px solid transparent;
+    white-space: nowrap;
+    transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .nav-link:hover { color: var(--ink); }
+  .nav-link[aria-current='page'] {
+    border-color: var(--seal);
+    color: var(--ink);
+  }
+
+  .lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35ch;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    border: 1px solid var(--rule, color-mix(in srgb, var(--ink) 16%, transparent));
+    border-color: color-mix(in srgb, var(--ink) 16%, transparent);
+    padding: 0.25rem 0.55rem;
+  }
+  .lang .on { color: var(--seal); font-weight: 600; }
+  .lang .off { opacity: 0.55; }
+  .lang .sep { opacity: 0.4; }
+
+  @media (max-width: 30rem) {
+    .wordmark { display: none; }
+  }
+  @media (max-width: 24rem) {
+    .lang { display: none; }
+  }
+</style>
