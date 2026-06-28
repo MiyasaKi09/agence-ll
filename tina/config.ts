@@ -81,8 +81,9 @@ const journal: Collection = {
 
 export default defineConfig({
   branch,
-  // Renseignés en production via Tina Cloud (sur Vercel). Absents en local → mode local.
-  clientId: process.env.PUBLIC_TINA_CLIENT_ID ?? '',
+  // Client ID Tina Cloud (public — embarqué dans l'admin, sans risque à committer).
+  // Le token, lui, reste un secret côté Vercel (TINA_TOKEN).
+  clientId: process.env.PUBLIC_TINA_CLIENT_ID ?? 'c0fd5f51-da60-4533-b8f1-02b2dfb11b4c',
   token: process.env.TINA_TOKEN ?? '',
   build: { outputFolder: 'admin', publicFolder: 'public' },
   media: { tina: { mediaRoot: 'uploads', publicFolder: 'public' } },
