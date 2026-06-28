@@ -19,6 +19,7 @@
     "@astrojs/vercel": "^8.2.11",
     "@keystatic/astro": "^5.1.0",
     "@keystatic/core": "^0.5.50",
+    "@storyblok/astro": "^10.0.0",
     "astro": "^5.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
