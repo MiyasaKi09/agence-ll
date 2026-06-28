@@ -1,6 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import { getContact } from '../lib/site';
+import { getLocale, useTranslations } from '../i18n/utils';
+
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 
 // FORMULAIRE — site statique, donc il faut un service côté serveur :
 //  • Le plus simple : Formspree (remplace l'action ci-dessous par ton endpoint).
@@ -18,7 +22,7 @@ const { lede } = await getContact();
 >
   <section class="section container contact-grid">
     <div class="intro stack">
-      <p class="eyebrow">Contact</p>
+      <p class="eyebrow">{t('nav.contact')}</p>
       <h1>Parlons de votre <em>projet</em>.</h1>
       <p class="lede">{lede}</p>
       <div class="coords stack">
@@ -35,19 +39,19 @@ const { lede } = await getContact();
 
     <form class="form" action={FORMSPREE_ENDPOINT} method="POST">
       <div class="field">
-        <label for="nom">Nom</label>
+        <label for="nom">{t('form.nom')}</label>
         <input id="nom" name="nom" type="text" required autocomplete="name" />
       </div>
       <div class="field">
-        <label for="email">E-mail</label>
+        <label for="email">{t('form.email')}</label>
         <input id="email" name="email" type="email" required autocomplete="email" />
       </div>
       <div class="field">
-        <label for="organisation">Organisation <span class="opt">(facultatif)</span></label>
+        <label for="organisation">{t('form.organisation')} <span class="opt">{t('form.optionnel')}</span></label>
         <input id="organisation" name="organisation" type="text" autocomplete="organization" />
       </div>
       <div class="field">
-        <label for="type">Type de projet</label>
+        <label for="type">{t('form.type')}</label>
         <select id="type" name="type">
           <option value="renovation">Rénovation énergétique</option>
           <option value="logement">Logement</option>
@@ -57,10 +61,10 @@ const { lede } = await getContact();
         </select>
       </div>
       <div class="field">
-        <label for="message">Message</label>
+        <label for="message">{t('form.message')}</label>
         <textarea id="message" name="message" rows="6" required></textarea>
       </div>
-      <button type="submit" class="submit">Envoyer →</button>
+      <button type="submit" class="submit">{t('cta.envoyer')} →</button>
       <p class="form-note meta">
         En envoyant ce formulaire, vous acceptez d’être recontacté·e par l’Agence L&amp;L.
       </p>

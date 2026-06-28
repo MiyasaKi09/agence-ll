@@ -2,14 +2,19 @@
 import Base from '../../layouts/Base.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { getCollection } from 'astro:content';
-import { RUBRIQUE_ORDER, RUBRIQUE_LABELS } from '../../lib/journal';
+import { RUBRIQUE_ORDER } from '../../lib/journal';
+import { getLocale, useTranslations } from '../../i18n/utils';
+import type { UIKey } from '../../i18n/ui';
+
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 
 const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
 const chips = [
-  { key: 'tout', label: 'Tout' },
-  ...RUBRIQUE_ORDER.map((r) => ({ key: r, label: RUBRIQUE_LABELS[r] })),
+  { key: 'tout', label: t('journal.all') },
+  ...RUBRIQUE_ORDER.map((r) => ({ key: r, label: t(`rubrique.${r}` as UIKey) })),
 ];
 ---
 <Base
@@ -18,7 +23,7 @@ const chips = [
 >
   <section class="section container">
     <header class="journal-head">
-      <p class="eyebrow">Le journal</p>
+      <p class="eyebrow">{t('journal.eyebrow')}</p>
       <h1>Ce que nous apprenons, <em>chantier après chantier</em>.</h1>
       <p class="lede">
         Retours de chantier, partis pris techniques, revues de presse et distinctions.
@@ -44,10 +49,10 @@ const chips = [
           {articles.map((article) => <ArticleCard article={article} compact />)}
         </div>
 
-        <p class="journal-empty" hidden>Aucun article dans cette rubrique pour l'instant.</p>
+        <p class="journal-empty" hidden>{t('journal.empty')}</p>
       </>
     ) : (
-      <p class="lede">Les premiers billets seront publiés ici très bientôt.</p>
+      <p class="lede">{t('journal.bientot')}</p>
     )}
   </section>
 </Base>

@@ -328,9 +328,11 @@ groupe **« Textes du site »** (singletons `accueil`/`agence`/`contact` →
    `prefixDefaultLocale:false`). Dictionnaire d'**interface** FR/EN dans
    `src/i18n/` ; le chrome (header, footer, cartes) se traduit via
    `Astro.currentLocale`. **Décision : on ne traduit que l'interface pour
-   l'instant** (le contenu reste FR). Les **pages `/en/` ne sont pas encore
-   créées** → le sélecteur affiche « EN » en *à venir* (`readyLocales` dans
-   `src/i18n/utils.ts` : repasser à `['fr','en']` une fois l'arbre `/en/` généré).
+   l'instant** (le contenu — prose, articles, projets — reste FR). L'**arbre
+   `/en/` existe** (routes EN qui réutilisent les pages FR comme composants ;
+   `getStaticPaths` partagés via `src/lib/paths.ts`) et le **sélecteur FR·EN est
+   actif** (`readyLocales = ['fr','en']`). Pour ajouter une langue : créer ses
+   pages `/xx/` + l'ajouter au dictionnaire `src/i18n/ui.ts` et à `readyLocales`.
 3. **« Moment statement » → LÉGER.** On garde la **signature sceau/gravure** : le sceau
    se pose au chargement, hover discret. **Pas de 3D/WebGL/parallaxe** pour le moment
    (perf + sobriété). Rediscutable plus tard si l'on veut un geste plus spectaculaire.

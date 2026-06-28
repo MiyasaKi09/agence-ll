@@ -1,55 +1,37 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { Image } from 'astro:assets';
-import { getCollection, render } from 'astro:content';
-import type { GetStaticPaths } from 'astro';
-import { rubriqueLabel, dateLongue, tempsLecture } from '../../lib/journal';
+import { render } from 'astro:content';
+import { journalStaticPaths } from '../../lib/paths';
+import { dateLongue, tempsLecture } from '../../lib/journal';
+import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
+import type { UIKey } from '../../i18n/ui';
 
-export const getStaticPaths = (async () => {
-  const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-
-  // index des projets, pour résoudre la carte « Projet lié »
-  const projets = await getCollection('projets');
-  const projetById = new Map(projets.map((p) => [p.id, p]));
-
-  return articles.map((entry, i) => {
-    const lie = entry.data.projetLie ? projetById.get(entry.data.projetLie) ?? null : null;
-    const projetLie = lie
-      ? { id: lie.id, titre: lie.data.titre, lieu: lie.data.lieu, annee: lie.data.annee, numero: lie.data.numero }
-      : null;
-    const toRef = (e?: (typeof articles)[number]) => (e ? { id: e.id, titre: e.data.titre } : null);
-    return {
-      params: { id: entry.id },
-      props: {
-        entry,
-        projetLie,
-        plusRecent: toRef(articles[i - 1]), // article plus récent (gauche)
-        plusAncien: toRef(articles[i + 1]),  // article plus ancien (droite)
-      },
-    };
-  });
-}) satisfies GetStaticPaths;
+export const getStaticPaths = journalStaticPaths;
 
 const { entry, projetLie, plusRecent, plusAncien } = Astro.props;
 const d = entry.data;
 const { Content } = await render(entry);
 
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
+
 const lecture = d.tempsLecture ?? tempsLecture(d.extrait);
-const canonical = new URL(`/journal/${entry.id}`, Astro.site ?? Astro.url).toString();
+const canonical = new URL(L(`/journal/${entry.id}`), Astro.site ?? Astro.url).toString();
 const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}`;
 ---
 <Base title={`${d.titre} — Journal — Agence L&L`} description={d.extrait}>
   <article class="container">
     <div class="article">
       <header class="art-head">
-        <a class="back plain" href="/journal">← Journal</a>
+        <a class="back plain" href={L('/journal')}>{t('article.back')}</a>
         <p class="meta-line">
-          <span class="rubrique">{rubriqueLabel(d.rubrique)}</span>
+          <span class="rubrique">{t(`rubrique.${d.rubrique}` as UIKey)}</span>
           <span class="sep" aria-hidden="true">·</span>
           <time datetime={d.date.toISOString()}>{dateLongue(d.date)}</time>
           <span class="sep" aria-hidden="true">·</span>
-          <span>{lecture} de lecture</span>
+          <span>{lecture} {t('article.reading')}</span>
         </p>
         <h1>{d.titre}</h1>
         <p class="signature">{d.signature}</p>
@@ -61,8 +43,8 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
           <Image src={d.image} alt={d.titre} widths={[600, 980, 1400]} sizes="(max-width: 46rem) 100vw, 46rem" />
         </figure>
       ) : (
-        <div class="hero ph" role="img" aria-label={`Visuel à venir — ${d.titre}`}>
-          <span class="ph-cap">{d.imageLegende ?? '[ photo à venir ]'}</span>
+        <div class="hero ph" role="img" aria-label={d.titre}>
+          <span class="ph-cap">{d.imageLegende ?? t('placeholder.photo')}</span>
         </div>
       )}
 
@@ -75,10 +57,10 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
 
       <!-- Projet lié -->
       {projetLie && (
-        <a class="projet-lie plain" href={`/projets/${projetLie.id}`}>
+        <a class="projet-lie plain" href={L(`/projets/${projetLie.id}`)}>
           <span class="pl-num num" aria-hidden="true">N°{projetLie.numero}</span>
           <span class="pl-body">
-            <span class="pl-label">Projet lié</span>
+            <span class="pl-label">{t('article.related')}</span>
             <span class="pl-titre">{projetLie.titre}</span>
             <span class="pl-meta meta">{projetLie.lieu} · {projetLie.annee} →</span>
           </span>
@@ -87,12 +69,12 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
 
       <!-- Barre de partage -->
       <div class="share">
-        <span class="share-label">Partager&nbsp;:</span>
+        <span class="share-label">{t('article.share')}</span>
         <a class="pill plain" href={linkedInShare} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-        <button type="button" class="pill" id="copy-link" data-url={canonical}>Copier le lien</button>
+        <button type="button" class="pill" id="copy-link" data-url={canonical}>{t('article.copy')}</button>
         {d.linkedInUrl && (
           <a class="also plain" href={d.linkedInUrl} target="_blank" rel="noopener noreferrer">
-            Aussi publié sur LinkedIn ↗
+            {t('article.alsoLinkedIn')} ↗
           </a>
         )}
       </div>
@@ -102,16 +84,16 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
         <nav class="prevnext" aria-label="Autres articles">
           <div class="pn pn-prev">
             {plusRecent && (
-              <a class="plain" href={`/journal/${plusRecent.id}`}>
-                <span class="pn-label">← Plus récent</span>
+              <a class="plain" href={L(`/journal/${plusRecent.id}`)}>
+                <span class="pn-label">{t('article.newer')}</span>
                 <span class="pn-titre">{plusRecent.titre}</span>
               </a>
             )}
           </div>
           <div class="pn pn-next">
             {plusAncien && (
-              <a class="plain" href={`/journal/${plusAncien.id}`}>
-                <span class="pn-label">Plus ancien →</span>
+              <a class="plain" href={L(`/journal/${plusAncien.id}`)}>
+                <span class="pn-label">{t('article.older')}</span>
                 <span class="pn-titre">{plusAncien.titre}</span>
               </a>
             )}
@@ -121,7 +103,7 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
     </div>
   </article>
 
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden>Lien copié</div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>{t('article.copied')}</div>
 </Base>
 
 <script>

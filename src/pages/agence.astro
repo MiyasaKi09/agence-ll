@@ -2,6 +2,10 @@
 import Base from '../layouts/Base.astro';
 import Monogram from '../components/Monogram.astro';
 import { getAgence } from '../lib/site';
+import { getLocale, useTranslations } from '../i18n/utils';
+
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 
 // Textes éditables depuis le CMS (sinon valeurs par défaut). Voir src/lib/site.ts.
 const { introParagraphes, savoirFaire, equipe, territoireTexte } = await getAgence();
@@ -12,7 +16,7 @@ const { introParagraphes, savoirFaire, equipe, territoireTexte } = await getAgen
 >
   <!-- Manifeste -->
   <section class="section container manifeste">
-    <p class="eyebrow">L’agence</p>
+    <p class="eyebrow">{t('home.lagence')}</p>
     <h1>Une architecture du déjà-là, sobre et <em>vivante</em>.</h1>
     <div class="manifeste-body prose">
       {introParagraphes.map((p) => <p>{p}</p>)}
@@ -23,7 +27,7 @@ const { introParagraphes, savoirFaire, equipe, territoireTexte } = await getAgen
   <section class="section container" id="savoir-faire" aria-labelledby="sf-h">
     <div class="section-head">
       <h2 id="sf-h">Ce que nous faisons</h2>
-      <span class="meta">Savoir-faire</span>
+      <span class="meta">{t('footer.savoirfaire')}</span>
     </div>
     <dl class="sf-list">
       {savoirFaire.map((s) => (
@@ -39,7 +43,7 @@ const { introParagraphes, savoirFaire, equipe, territoireTexte } = await getAgen
   <section class="section container equipe" id="equipe" aria-labelledby="eq-h">
     <div class="section-head">
       <h2 id="eq-h">L&amp;L — deux Lenglet</h2>
-      <span class="meta">Le duo</span>
+      <span class="meta">{t('agence.duo')}</span>
     </div>
     <div class="equipe-grid">
       {equipe.map((m) => (
@@ -56,7 +60,7 @@ const { introParagraphes, savoirFaire, equipe, territoireTexte } = await getAgen
   <section class="section container territoire">
     <Monogram variant="plain" size={120} class="terr-seal" />
     <div>
-      <p class="eyebrow">Territoire</p>
+      <p class="eyebrow">{t('agence.territoire')}</p>
       <h2>Entre Paris et la <em>Normandie</em>.</h2>
       <p class="lede">{territoireTexte}</p>
     </div>

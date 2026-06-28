@@ -5,6 +5,11 @@ import ArticleCard from '../components/ArticleCard.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import { getAccueil } from '../lib/site';
+import { getLocale, useTranslations, localizePath } from '../i18n/utils';
+
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
 
 const { manifesteTexte } = await getAccueil();
 
@@ -34,8 +39,8 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
           Une agence pour une architecture sobre — ancrée dans la matière,
           attentive au vivant, au service des collectivités et de l'habitat.
         </p>
-        <a class="hero-cta plain" href="/journal">
-          <span>Lire le journal</span><span class="arr" aria-hidden="true">→</span>
+        <a class="hero-cta plain" href={L('/journal')}>
+          <span>{t('cta.lireJournal')}</span><span class="arr" aria-hidden="true">→</span>
         </a>
       </div>
 
@@ -48,9 +53,9 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
   <!-- ——— AU JOURNAL (le cœur de l'accueil) ——— -->
   <section class="section container journal-home" id="journal" aria-labelledby="journal-h">
     <div class="section-head">
-      <h2 id="journal-h">Au journal</h2>
-      <a class="section-link plain" href="/journal">
-        <span>Tout voir</span><span class="arr" aria-hidden="true">→</span>
+      <h2 id="journal-h">{t('home.auJournal')}</h2>
+      <a class="section-link plain" href={L('/journal')}>
+        <span>{t('cta.toutVoir')}</span><span class="arr" aria-hidden="true">→</span>
       </a>
     </div>
 
@@ -59,15 +64,15 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
         {articles.map((article) => <ArticleCard article={article} />)}
       </div>
     ) : (
-      <p class="lede">Les premiers billets seront publiés ici très bientôt.</p>
+      <p class="lede">{t('journal.bientot')}</p>
     )}
   </section>
 
   <!-- ——— PROJET À LA UNE ——— -->
   {featured && (
     <section class="section container featured-sec" aria-labelledby="featured-h">
-      <p class="eyebrow">Projet à la une</p>
-      <a class="featured plain" href={`/projets/${featured.id}`}>
+      <p class="eyebrow">{t('home.projetUne')}</p>
+      <a class="featured plain" href={L(`/projets/${featured.id}`)}>
         <span class="f-num num" aria-hidden="true">N°{featured.data.numero}</span>
         <div class="featured-visual">
           {featured.data.couverture ? (
@@ -79,7 +84,7 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
             />
           ) : (
             <div class={`featured-ph mat mat-${matiere}`} aria-hidden="true">
-              <span class="ph-cap">[ photo du projet — épreuve à venir ]</span>
+              <span class="ph-cap">{t('placeholder.projet')}</span>
             </div>
           )}
         </div>
@@ -93,14 +98,14 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
 
   <!-- ——— MANIFESTE ——— -->
   <section class="section container manifeste" aria-labelledby="manifeste-h">
-    <p class="eyebrow m-label">L'agence</p>
+    <p class="eyebrow m-label">{t('home.lagence')}</p>
     <div class="m-body">
       <h2 id="manifeste-h">
         Nous partons toujours de l'existant — du bâti, du sol, du climat — pour
         faire mieux avec <em>moins</em>.
       </h2>
       <p>{manifesteTexte}</p>
-      <a class="m-link" href="/agence">En savoir plus sur l'agence →</a>
+      <a class="m-link" href={L('/agence')}>{t('cta.enSavoirPlus')} →</a>
     </div>
   </section>
 
@@ -109,8 +114,8 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
     <div class="contact-inner">
       <div>
         <h2 id="contact-h">Un lieu, un programme, une <em>intention</em>&nbsp;?</h2>
-        <a class="contact-cta plain" href="/contact">
-          <span>Écrire à l'agence</span><span class="arr" aria-hidden="true">→</span>
+        <a class="contact-cta plain" href={L('/contact')}>
+          <span>{t('cta.ecrire')}</span><span class="arr" aria-hidden="true">→</span>
         </a>
       </div>
       <div class="contact-side">

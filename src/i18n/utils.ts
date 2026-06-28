@@ -3,7 +3,7 @@ import { ui, defaultLocale, locales, type Locale, type UIKey } from './ui';
 // Tant que les pages /en/ ne sont pas créées, on garde l'infra i18n en place
 // (chrome déjà traduisible) mais le sélecteur n'offre que les langues « prêtes ».
 // Passer à ['fr','en'] une fois l'arbre /en/ généré.
-export const readyLocales: readonly Locale[] = ['fr'];
+export const readyLocales: readonly Locale[] = ['fr', 'en'];
 export const isLocaleReady = (l: Locale) => readyLocales.includes(l);
 
 // Locale courante à partir de l'URL (/en/... => 'en', sinon 'fr').
