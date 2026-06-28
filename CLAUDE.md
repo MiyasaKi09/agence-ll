@@ -304,17 +304,20 @@ dans le dépôt** (Markdown/JSON). **Aucune base, aucun serveur, gratuit (MIT).*
   conditionnellement (dev only)**, ou on déploie la route `/keystatic` séparément.
   C'est un pattern documenté et éprouvé (Astro + Keystatic + Claude Code).
 
-→ ✅ **DÉCISION (validée) : Keystatic est activé.** Zoé éditera les projets via
-l'interface. À intégrer en suivant les étapes ci-dessus (schéma **identique** aux
-content collections, gotcha SSR géré). Le contenu reste en **fichiers dans le dépôt** —
-toujours **aucune base**.
+→ ✅ **INTÉGRÉ ✓ (Keystatic).** Admin sur **`/keystatic`**, collections `projets`
+et `journal` (mêmes fichiers `.mdx` que les content collections), corps en
+`fields.mdx`. **Mode local** en dev ; **mode GitHub** en prod via
+`PUBLIC_KEYSTATIC_MODE=github` + secrets (voir **`docs/keystatic.md`**). Le site
+reste **statique** ; seules `/keystatic` et `/api/keystatic` tournent en SSR
+(`output: 'static'` + adaptateur `@astrojs/vercel`, intégrations `react()` +
+`keystatic()`). Toujours **aucune base** — le contenu vit dans le dépôt.
 
 ---
 
 ## 12. Décisions — tranchées ✅ (28/06/2026)
 
-1. **CMS pour Zoé → OUI.** On intègre **Keystatic** (git-based, sans base) pour que Zoé
-   ajoute/édite les projets sans coder. Plan d'intégration en §11.
+1. **CMS pour Zoé → OUI → INTÉGRÉ ✓.** **Keystatic** (git-based, sans base) est en
+   place : admin `/keystatic`, projets + Journal. Détails §11 et `docs/keystatic.md`.
 2. **Bilingue FR/EN → OUI.** **FR par défaut**, **EN** en second. Mise en œuvre : i18n
    natif d'Astro (`astro.config.mjs` → `i18n: { defaultLocale: 'fr', locales: ['fr','en'] }`,
    `routing: { prefixDefaultLocale: false }` → FR à `/`, EN sous `/en/`). Côté contenu :
