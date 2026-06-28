@@ -19,3 +19,7 @@ node_modules/
 npm-debug.log*
 .DS_Store
 Thumbs.db
+
+# TinaCMS — artefacts générés (régénérés par `tinacms build` / `tinacms dev`)
+tina/__generated__/
+public/admin/
