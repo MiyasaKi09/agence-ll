@@ -19,6 +19,43 @@ et les **articles du Journal**. Tout est réécrit en **fichiers dans le dépôt
 > par Keystatic doit être résolu par `image()` d'Astro) — un ajustement d'une
 > ligne dans `keystatic.config.ts` (`publicPath`) suffit si besoin.
 
+## Mot de passe (protéger l'admin)
+
+L'admin est protégé par **mot de passe** dès que la variable d'environnement
+`KEYSTATIC_PASSWORD` est définie (sur Vercel : Project → Settings → Environment
+Variables). Un navigateur qui ouvre `/keystatic` demande alors le mot de passe
+(authentification HTTP « Basic » ; le nom d'utilisateur est ignoré, seul le mot
+de passe compte).
+
+- Sans `KEYSTATIC_PASSWORD`, l'admin reste **ouvert** (pratique en dev local).
+- Le reste du site (pages publiques) n'est **jamais** protégé.
+- En **mode GitHub**, ce mot de passe vient **en plus** de la connexion GitHub.
+
+> Le mot de passe filtre **qui peut ouvrir l'admin**. Pour que les
+> enregistrements **persistent** en ligne, il faut le **mode GitHub** ci-dessous
+> (sinon, sur Vercel, les écritures sont éphémères).
+
+## Langue & marque de l'admin
+
+L'interface d'admin est en **français** (`locale: 'fr-FR'`) et porte le
+**sceau-pieuvre** du site comme marque. Quelques libellés internes de Keystatic
+restent en anglais (traduction partielle de l'outil) — l'essentiel (navigation,
+boutons, champs) est en français.
+
+## Textes du site (éditables)
+
+En plus des projets et du Journal, le groupe **« Textes du site »** permet
+d'éditer la prose des pages, sans coder :
+
+- **Accueil** — le paragraphe du manifeste.
+- **Agence** — manifeste (paragraphes), savoir-faire, équipe, territoire.
+- **Contact** — l'accroche.
+
+Ces textes sont stockés en JSON dans `src/content/site/*.json` et relus au build
+(`src/lib/site.ts`). Les **courts titres « signature »** (avec l'accent terre
+cuite, ex. « …sobre et *vivante*. ») restent dans le code pour préserver le
+style — on peut les rendre éditables plus tard si besoin.
+
 ## Mode local (développement)
 
 Rien à configurer :

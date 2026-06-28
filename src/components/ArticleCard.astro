@@ -1,7 +1,9 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
-import { rubriqueLabel, dateCourte } from '../lib/journal';
+import { dateCourte } from '../lib/journal';
+import { getLocale, useTranslations, localizePath } from '../i18n/utils';
+import type { UIKey } from '../i18n/ui';
 
 interface Props {
   article: CollectionEntry<'journal'>;
@@ -10,8 +12,11 @@ interface Props {
 }
 const { article, compact = false } = Astro.props;
 const d = article.data;
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+const rubriqueLabel = t(`rubrique.${d.rubrique}` as UIKey);
 ---
-<a href={`/journal/${article.id}`} class="article-card plain" data-rubrique={d.rubrique}>
+<a href={localizePath(`/journal/${article.id}`, locale)} class="article-card plain" data-rubrique={d.rubrique}>
   <div class="frame">
     {d.image ? (
       <Image
@@ -30,7 +35,7 @@ const d = article.data;
 
   <div class="body">
     <p class="meta-line">
-      <span class="rubrique">{rubriqueLabel(d.rubrique)}</span>
+      <span class="rubrique">{rubriqueLabel}</span>
       <span class="sep" aria-hidden="true">·</span>
       <span class="date"><time datetime={d.date.toISOString()}>{dateCourte(d.date)}</time></span>
     </p>

@@ -11,6 +11,15 @@ export default defineConfig({
   // Remplace par le domaine définitif quand il est posé (sert au sitemap + URLs canoniques)
   site: 'https://agence-ll.fr',
 
+  // Bilingue : FR par défaut à la racine /, EN sous /en/ (CLAUDE.md §12).
+  // Pour l'instant seule l'INTERFACE est traduite ; le contenu (articles, projets,
+  // prose) reste en FR sous /en/ en attendant sa traduction.
+  i18n: {
+    defaultLocale: 'fr',
+    locales: ['fr', 'en'],
+    routing: { prefixDefaultLocale: false },
+  },
+
   // SSG par défaut : toutes les pages publiques sont pré-rendues (statiques, zéro JS).
   // L'admin Keystatic injecte deux routes en `prerender: false` (/keystatic et
   // /api/keystatic) — elles tournent côté serveur. En Astro 5, `output: 'static'`

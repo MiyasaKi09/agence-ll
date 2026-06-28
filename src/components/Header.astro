@@ -1,19 +1,26 @@
 ---
 import Monogram from './Monogram.astro';
+import { getLocale, useTranslations, localizePath, alternatePath, isLocaleReady } from '../i18n/utils';
+import { locales, localeLabel } from '../i18n/ui';
+
 const path = Astro.url.pathname;
-const isActive = (href: string) =>
-  href === '/' ? path === '/' : path.startsWith(href);
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 
 const nav = [
-  { href: '/agence', label: 'Agence' },
-  { href: '/projets', label: 'Projets' },
-  { href: '/journal', label: 'Journal' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/agence', key: 'nav.agence' as const },
+  { href: '/projets', key: 'nav.projets' as const },
+  { href: '/journal', key: 'nav.journal' as const },
+  { href: '/contact', key: 'nav.contact' as const },
 ];
+const isActive = (href: string) => {
+  const localized = localizePath(href, locale);
+  return path === localized || path.startsWith(localized + '/');
+};
 ---
 <header class="site-header">
   <div class="container bar">
-    <a href="/" class="brand plain" aria-label="Agence L&L — accueil">
+    <a href={localizePath('/', locale)} class="brand plain" aria-label="Agence L&L">
       <Monogram variant="mark" size={42} />
       <span class="wordmark">Agence&nbsp;L<span class="amp">&amp;</span>L</span>
     </a>
@@ -23,20 +30,29 @@ const nav = [
         {nav.map((item) => (
           <li>
             <a
-              href={item.href}
+              href={localizePath(item.href, locale)}
               class="nav-link plain"
               aria-current={isActive(item.href) ? 'page' : undefined}
-            >{item.label}</a>
+            >{t(item.key)}</a>
           </li>
         ))}
       </ul>
 
-      {/* Indicateur bilingue (la maquette le prévoit). L'EN sera activé quand
-          l'i18n natif d'Astro sera câblé — voir CLAUDE.md §12. Pour l'instant,
-          repère statique : FR actif, EN à venir (pas de lien mort). */}
-      <span class="lang" role="note" aria-label="Site en français — version anglaise à venir">
-        <span class="on">FR</span><span class="sep" aria-hidden="true">·</span><span class="off">EN</span>
-      </span>
+      {/* Sélecteur de langue — pointe vers la page équivalente dans l'autre langue */}
+      <div class="lang" aria-label={t('lang.aria')}>
+        {locales.map((loc, i) => (
+          <>
+            {i > 0 && <span class="sep" aria-hidden="true">·</span>}
+            {loc === locale ? (
+              <span class="on" aria-current="true">{localeLabel[loc]}</span>
+            ) : isLocaleReady(loc) ? (
+              <a class="off plain" hreflang={loc} href={alternatePath(path, loc)}>{localeLabel[loc]}</a>
+            ) : (
+              <span class="off soon" title="à venir">{localeLabel[loc]}</span>
+            )}
+          </>
+        ))}
+      </div>
     </nav>
   </div>
 </header>
@@ -114,7 +130,9 @@ const nav = [
     padding: 0.25rem 0.55rem;
   }
   .lang .on { color: var(--seal); font-weight: 600; }
-  .lang .off { opacity: 0.55; }
+  .lang .off { color: var(--ink-soft); }
+  .lang a.off:hover { color: var(--ink); }
+  .lang .off.soon { opacity: 0.45; cursor: default; }
   .lang .sep { opacity: 0.4; }
 
   @media (max-width: 30rem) {

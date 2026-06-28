@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getContact } from '../lib/site';
 
 // FORMULAIRE — site statique, donc il faut un service côté serveur :
 //  • Le plus simple : Formspree (remplace l'action ci-dessous par ton endpoint).
@@ -7,6 +8,9 @@ import Base from '../layouts/Base.astro';
 //    crée une route API qui envoie l'e-mail via Resend (clé en variable d'env).
 // Voir CLAUDE.md › « Formulaire de contact ».
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
+
+// Accroche éditable depuis le CMS (sinon valeur par défaut).
+const { lede } = await getContact();
 ---
 <Base
   title="Contact — Agence L&L"
@@ -16,10 +20,7 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
     <div class="intro stack">
       <p class="eyebrow">Contact</p>
       <h1>Parlons de votre <em>projet</em>.</h1>
-      <p class="lede">
-        Maîtrise d’ouvrage publique ou privée, concours, faisabilité, rénovation —
-        écrivez-nous, nous revenons vers vous rapidement.
-      </p>
+      <p class="lede">{lede}</p>
       <div class="coords stack">
         <p>
           <span class="meta">E-mail</span><br />

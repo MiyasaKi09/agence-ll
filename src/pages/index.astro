@@ -4,6 +4,9 @@ import Monogram from '../components/Monogram.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import { getAccueil } from '../lib/site';
+
+const { manifesteTexte } = await getAccueil();
 
 const projetsAll = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
@@ -96,11 +99,7 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
         Nous partons toujours de l'existant — du bâti, du sol, du climat — pour
         faire mieux avec <em>moins</em>.
       </h2>
-      <p>
-        Rénovation énergétique, logement, équipements publics : une pratique sobre,
-        des matières biosourcées, et une attention constante au vivant, du diagnostic
-        au chantier.
-      </p>
+      <p>{manifesteTexte}</p>
       <a class="m-link" href="/agence">En savoir plus sur l'agence →</a>
     </div>
   </section>

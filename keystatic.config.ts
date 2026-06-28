@@ -1,4 +1,5 @@
-import { config, fields, collection } from '@keystatic/core';
+import { config, fields, collection, singleton } from '@keystatic/core';
+import { createElement } from 'react';
 
 // CMS git-based (sans base de données) — voir CLAUDE.md §11.
 // L'admin vit sur /keystatic. Les modifications sont réécrites en FICHIERS dans
@@ -17,10 +18,17 @@ const storage =
 
 export default config({
   storage,
+  // Interface d'admin en français (boutons, info-bulles, etc.)
+  locale: 'fr-FR',
   ui: {
-    brand: { name: 'Agence L&L' },
+    brand: {
+      name: 'Agence L&L',
+      // sceau-pieuvre du site comme marque de l'admin
+      mark: () => createElement('img', { src: '/favicon.svg', alt: '', width: 22, height: 22 }),
+    },
     navigation: {
       Contenu: ['projets', 'journal'],
+      'Textes du site': ['accueil', 'agence', 'contact'],
     },
   },
   collections: {
@@ -123,6 +131,61 @@ export default config({
           description: 'Texte de l’article (Markdown/MDX)',
           extension: 'mdx',
         }),
+      },
+    }),
+  },
+
+  // ——— TEXTES DU SITE (éditables) ———
+  // Stockés en JSON dans src/content/site/*.json, relus au build via le reader
+  // Keystatic (voir src/lib/site.ts). Les courts titres « signature » (avec
+  // l'accent terre cuite) restent dans le code ; ici on édite la prose.
+  singletons: {
+    accueil: singleton({
+      label: 'Accueil',
+      path: 'src/content/site/accueil',
+      format: { data: 'json' },
+      schema: {
+        manifesteTexte: fields.text({
+          label: 'Manifeste (accueil) — texte',
+          description: 'Le paragraphe sous le titre du manifeste, sur la page d’accueil.',
+          multiline: true,
+        }),
+      },
+    }),
+
+    agence: singleton({
+      label: 'Agence',
+      path: 'src/content/site/agence',
+      format: { data: 'json' },
+      schema: {
+        introParagraphes: fields.array(
+          fields.text({ label: 'Paragraphe', multiline: true }),
+          { label: 'Manifeste — paragraphes', itemLabel: (p) => p.value.slice(0, 48) || 'Paragraphe' },
+        ),
+        savoirFaire: fields.array(
+          fields.object({
+            titre: fields.text({ label: 'Titre' }),
+            description: fields.text({ label: 'Description', multiline: true }),
+          }),
+          { label: 'Savoir-faire', itemLabel: (p) => p.fields.titre.value || 'Savoir-faire' },
+        ),
+        equipe: fields.array(
+          fields.object({
+            nom: fields.text({ label: 'Nom' }),
+            bio: fields.text({ label: 'Bio', multiline: true }),
+          }),
+          { label: 'Équipe', itemLabel: (p) => p.fields.nom.value || 'Membre' },
+        ),
+        territoireTexte: fields.text({ label: 'Territoire — texte', multiline: true }),
+      },
+    }),
+
+    contact: singleton({
+      label: 'Contact',
+      path: 'src/content/site/contact',
+      format: { data: 'json' },
+      schema: {
+        lede: fields.text({ label: 'Contact — accroche', multiline: true }),
       },
     }),
   },

@@ -1,6 +1,10 @@
 ---
 import Monogram from './Monogram.astro';
+import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 const year = new Date().getFullYear();
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
 ---
 <footer class="site-footer">
   <div class="container">
@@ -9,36 +13,36 @@ const year = new Date().getFullYear();
         <Monogram variant="plain" size={60} class="footer-seal" />
         <div>
           <div class="name">Agence&nbsp;L<span class="amp">&amp;</span>L</div>
-          <div class="sub">Architecture · Rénovation · Vivant</div>
+          <div class="sub">{t('footer.tagline')}</div>
         </div>
       </div>
 
       <div class="footer-cols">
-        <nav class="col" aria-label="Agence">
-          <span class="h">Agence</span>
-          <a href="/agence">Manifeste</a><br />
-          <a href="/agence#savoir-faire">Savoir-faire</a><br />
-          <a href="/agence#equipe">Équipe</a>
+        <nav class="col" aria-label={t('footer.colAgence')}>
+          <span class="h">{t('footer.colAgence')}</span>
+          <a href={L('/agence')}>{t('footer.manifeste')}</a><br />
+          <a href={`${L('/agence')}#savoir-faire`}>{t('footer.savoirfaire')}</a><br />
+          <a href={`${L('/agence')}#equipe`}>{t('footer.equipe')}</a>
         </nav>
-        <nav class="col" aria-label="Le site">
-          <span class="h">Le site</span>
-          <a href="/projets">Projets</a><br />
-          <a href="/journal">Journal</a><br />
-          <a href="/contact">Contact</a><br />
-          <a href="/mentions-legales">Mentions légales</a>
+        <nav class="col" aria-label={t('footer.colSite')}>
+          <span class="h">{t('footer.colSite')}</span>
+          <a href={L('/projets')}>{t('nav.projets')}</a><br />
+          <a href={L('/journal')}>{t('nav.journal')}</a><br />
+          <a href={L('/contact')}>{t('nav.contact')}</a><br />
+          <a href={L('/mentions-legales')}>{t('footer.mentions')}</a>
         </nav>
         <div class="col">
-          <span class="h">Contact</span>
+          <span class="h">{t('footer.colContact')}</span>
           <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a><br />
           Paris&nbsp;—&nbsp;Normandie<br />
-          <span class="muted">LinkedIn · Instagram <span class="soon">(à venir)</span></span>
+          <span class="muted">LinkedIn · Instagram <span class="soon">{t('footer.soon')}</span></span>
         </div>
       </div>
     </div>
 
     <div class="colophon">
-      <span>© {year} Agence L&amp;L — Architectes DE</span>
-      <span><a href="/mentions-legales">Mentions légales</a></span>
+      <span>© {year} Agence L&amp;L — {t('footer.rights')}</span>
+      <span><a href={L('/mentions-legales')}>{t('footer.mentions')}</a></span>
     </div>
   </div>
 </footer>
@@ -80,7 +84,7 @@ const year = new Date().getFullYear();
 
   .colophon {
     margin-top: 2.4rem; padding-top: 1rem;
-    border-top: 1px dashed rgba(28, 26, 23, 0.16); /* = --ink à 16% */
+    border-top: 1px dashed rgba(28, 26, 23, 0.16);
     display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
     font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--ink-soft);

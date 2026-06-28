@@ -1,0 +1,18 @@
+{
+  "introParagraphes": [
+    "L’Agence L&L est un duo d’architectes installé à Paris, qui travaille entre la capitale et la Normandie. Nous concevons des bâtiments qui partent de l’existant — du bâti, du sol, du climat — pour faire mieux avec moins.",
+    "Rénovation énergétique, logement, équipements publics : notre pratique privilégie les matières biosourcées, la juste mesure technique et une attention constante au vivant. De la première esquisse au chantier, nous cherchons des projets utiles, tenus et durables."
+  ],
+  "savoirFaire": [
+    { "titre": "Rénovation énergétique", "description": "Diagnostic, stratégie d’isolation, systèmes (PAC, ventilation), confort d’été." },
+    { "titre": "Logement social", "description": "Programmation, qualité d’usage, coûts maîtrisés, marchés publics." },
+    { "titre": "Équipements publics", "description": "Concours, faisabilité, MOP, concertation." },
+    { "titre": "Construction biosourcée", "description": "Pisé, chaux-chanvre, fibre de bois, réemploi." },
+    { "titre": "Paysage & biodiversité", "description": "Pleine terre, plantation naturaliste, gestion de l’eau." }
+  ],
+  "equipe": [
+    { "nom": "Julien Lenglet", "bio": "Architecte DE — architecture des milieux et paysages (ENSAPLV). Formation initiale en biologie (Sorbonne)." },
+    { "nom": "Zoé Lenglet", "bio": "Architecte — HMONP. Conduite de projet, qualité d’exécution." }
+  ],
+  "territoireTexte": "Un corridor de travail qui relie la densité parisienne aux territoires normands — et la possibilité, partout, d’une architecture attentive aux lieux."
+}

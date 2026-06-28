@@ -311,6 +311,11 @@ et `journal` (mêmes fichiers `.mdx` que les content collections), corps en
 reste **statique** ; seules `/keystatic` et `/api/keystatic` tournent en SSR
 (`output: 'static'` + adaptateur `@astrojs/vercel`, intégrations `react()` +
 `keystatic()`). Toujours **aucune base** — le contenu vit dans le dépôt.
+Admin **en français** (`locale: 'fr-FR'`) + **sceau-pieuvre** en marque,
+**protégé par mot de passe** (`KEYSTATIC_PASSWORD`, middleware Basic Auth), et
+groupe **« Textes du site »** (singletons `accueil`/`agence`/`contact` →
+`src/content/site/*.json`, relus via `src/lib/site.ts`) pour éditer la prose
+(manifeste, savoir-faire, équipe…) sans coder.
 
 ---
 
@@ -318,12 +323,14 @@ reste **statique** ; seules `/keystatic` et `/api/keystatic` tournent en SSR
 
 1. **CMS pour Zoé → OUI → INTÉGRÉ ✓.** **Keystatic** (git-based, sans base) est en
    place : admin `/keystatic`, projets + Journal. Détails §11 et `docs/keystatic.md`.
-2. **Bilingue FR/EN → OUI.** **FR par défaut**, **EN** en second. Mise en œuvre : i18n
-   natif d'Astro (`astro.config.mjs` → `i18n: { defaultLocale: 'fr', locales: ['fr','en'] }`,
-   `routing: { prefixDefaultLocale: false }` → FR à `/`, EN sous `/en/`). Côté contenu :
-   soit un champ `lang` + filtrage, soit un dossier par langue dans les collections (à
-   câbler **tôt**, ça structure le routage). Le **sélecteur `FR · EN`** est déjà dans le
-   header (prototype).
+2. **Bilingue FR/EN → OUI → INFRA EN PLACE (EN à finir).** i18n natif d'Astro câblé
+   (`astro.config.mjs` : `defaultLocale:'fr'`, `locales:['fr','en']`,
+   `prefixDefaultLocale:false`). Dictionnaire d'**interface** FR/EN dans
+   `src/i18n/` ; le chrome (header, footer, cartes) se traduit via
+   `Astro.currentLocale`. **Décision : on ne traduit que l'interface pour
+   l'instant** (le contenu reste FR). Les **pages `/en/` ne sont pas encore
+   créées** → le sélecteur affiche « EN » en *à venir* (`readyLocales` dans
+   `src/i18n/utils.ts` : repasser à `['fr','en']` une fois l'arbre `/en/` généré).
 3. **« Moment statement » → LÉGER.** On garde la **signature sceau/gravure** : le sceau
    se pose au chargement, hover discret. **Pas de 3D/WebGL/parallaxe** pour le moment
    (perf + sobriété). Rediscutable plus tard si l'on veut un geste plus spectaculaire.

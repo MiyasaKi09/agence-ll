@@ -1,6 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import { getLocale, useTranslations, localizePath } from '../i18n/utils';
+import type { UIKey } from '../i18n/ui';
 
 interface Props {
   projet: CollectionEntry<'projets'>;
@@ -8,12 +10,9 @@ interface Props {
 const { projet } = Astro.props;
 const d = projet.data;
 
-const statutLabel: Record<string, string> = {
-  concours: 'Concours',
-  'étude': 'Étude',
-  chantier: 'Chantier',
-  'livré': 'Livré',
-};
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+const statutLabel = t(`statut.${d.statut}` as UIKey);
 
 // Matière du placeholder choisie de façon déterministe (stable au build),
 // pour varier les vignettes tant qu'il n'y a pas de vraie photo.
@@ -21,7 +20,7 @@ const matieres = ['chanvre', 'pise', 'bois'] as const;
 const seed = [...projet.id].reduce((acc, c) => acc + c.charCodeAt(0), 0);
 const matiere = matieres[seed % matieres.length];
 ---
-<a href={`/projets/${projet.id}`} class="card plain">
+<a href={localizePath(`/projets/${projet.id}`, locale)} class="card plain">
   <span class="num" aria-hidden="true">N°{d.numero}</span>
 
   <div class="frame">
@@ -47,7 +46,7 @@ const matiere = matieres[seed % matieres.length];
       <span class="meta">{d.annee}</span>
       <span class="sep meta" aria-hidden="true">/</span>
       <span class="meta">{d.programme}</span>
-      <span class="statut">{statutLabel[d.statut] ?? d.statut}</span>
+      <span class="statut">{statutLabel}</span>
     </div>
   </div>
 </a>

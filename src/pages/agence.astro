@@ -1,18 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import Monogram from '../components/Monogram.astro';
+import { getAgence } from '../lib/site';
 
-const savoirfaire = [
-  ['Rénovation énergétique', 'Diagnostic, stratégie d’isolation, systèmes (PAC, ventilation), confort d’été.'],
-  ['Logement social', 'Programmation, qualité d’usage, coûts maîtrisés, marchés publics.'],
-  ['Équipements publics', 'Concours, faisabilité, MOP, concertation.'],
-  ['Construction biosourcée', 'Pisé, chaux-chanvre, fibre de bois, réemploi.'],
-  ['Paysage & biodiversité', 'Pleine terre, plantation naturaliste, gestion de l’eau.'],
-];
-const equipe = [
-  ['Julien Lenglet', 'Architecte DE — architecture des milieux et paysages (ENSAPLV). Formation initiale en biologie (Sorbonne).'],
-  ['Zoé Lenglet', 'Architecte — HMONP. Conduite de projet, qualité d’exécution.'],
-];
+// Textes éditables depuis le CMS (sinon valeurs par défaut). Voir src/lib/site.ts.
+const { introParagraphes, savoirFaire, equipe, territoireTexte } = await getAgence();
 ---
 <Base
   title="L’agence — Agence L&L"
@@ -23,17 +15,7 @@ const equipe = [
     <p class="eyebrow">L’agence</p>
     <h1>Une architecture du déjà-là, sobre et <em>vivante</em>.</h1>
     <div class="manifeste-body prose">
-      <p>
-        L’Agence&nbsp;L&amp;L est un duo d’architectes installé à Paris, qui travaille
-        entre la capitale et la Normandie. Nous concevons des bâtiments qui partent
-        de l’existant — du bâti, du sol, du climat — pour faire mieux avec moins.
-      </p>
-      <p>
-        Rénovation énergétique, logement, équipements publics : notre pratique
-        privilégie les matières biosourcées, la juste mesure technique et une
-        attention constante au vivant. De la première esquisse au chantier, nous
-        cherchons des projets utiles, tenus et durables.
-      </p>
+      {introParagraphes.map((p) => <p>{p}</p>)}
     </div>
   </section>
 
@@ -44,10 +26,10 @@ const equipe = [
       <span class="meta">Savoir-faire</span>
     </div>
     <dl class="sf-list">
-      {savoirfaire.map(([k, v]) => (
+      {savoirFaire.map((s) => (
         <div class="sf-row">
-          <dt>{k}</dt>
-          <dd>{v}</dd>
+          <dt>{s.titre}</dt>
+          <dd>{s.description}</dd>
         </div>
       ))}
     </dl>
@@ -60,11 +42,11 @@ const equipe = [
       <span class="meta">Le duo</span>
     </div>
     <div class="equipe-grid">
-      {equipe.map(([nom, bio]) => (
+      {equipe.map((m) => (
         <article class="membre stack">
           <div class="portrait" aria-hidden="true"></div>
-          <h3>{nom}</h3>
-          <p>{bio}</p>
+          <h3>{m.nom}</h3>
+          <p>{m.bio}</p>
         </article>
       ))}
     </div>
@@ -76,10 +58,7 @@ const equipe = [
     <div>
       <p class="eyebrow">Territoire</p>
       <h2>Entre Paris et la <em>Normandie</em>.</h2>
-      <p class="lede">
-        Un corridor de travail qui relie la densité parisienne aux territoires
-        normands — et la possibilité, partout, d’une architecture attentive aux lieux.
-      </p>
+      <p class="lede">{territoireTexte}</p>
     </div>
   </section>
 </Base>
