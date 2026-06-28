@@ -5,23 +5,8 @@ import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
-import { storyblok } from '@storyblok/astro';
-
-// Storyblok : éditeur visuel + contenu en direct. On n'active l'intégration que si
-// un jeton est présent (sur Vercel) — ainsi un build local sans secrets reste vert.
-// Jeton de prévisualisation de préférence (lit brouillon + publié) ; sinon public.
-const storyblokToken =
-  process.env.STORYBLOK_PREVIEW_TOKEN || process.env.PUBLIC_STORYBLOK_TOKEN;
-const storyblokIntegration = storyblokToken
-  ? [
-      storyblok({
-        accessToken: storyblokToken,
-        apiOptions: { region: process.env.STORYBLOK_REGION || 'eu' },
-        bridge: true, // injecte le bridge → éditeur visuel + rechargement au changement
-        components: {}, // le pilote rend manuellement ; mapping ajouté à la migration
-      }),
-    ]
-  : [];
+import tina from '@tinacms/astro/integration';
+import { tinaAdminDevRedirect } from '@tinacms/astro/vite';
 
 // https://astro.build/config
 export default defineConfig({
@@ -61,11 +46,12 @@ export default defineConfig({
   integrations: [
     react(),     // requis par l'admin Keystatic
     keystatic(),
-    ...storyblokIntegration,
+    tina(),      // TinaCMS : éditeur visuel sur /admin (servi par ton propre site)
     mdx(),
     sitemap({
-      // on n'indexe pas l'admin / l'API
-      filter: (page) => !page.includes('/keystatic') && !page.includes('/api/'),
+      // on n'indexe pas les admins / l'API
+      filter: (page) =>
+        !page.includes('/keystatic') && !page.includes('/admin') && !page.includes('/api/'),
     }),
   ],
 
@@ -79,5 +65,11 @@ export default defineConfig({
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'viewport',
+  },
+
+  vite: {
+    // Redirige /admin vers l'éditeur Tina en dev ; bundle Tina côté SSR.
+    plugins: [tinaAdminDevRedirect()],
+    ssr: { noExternal: ['@tinacms/astro', '@tinacms/bridge'] },
   },
 });
