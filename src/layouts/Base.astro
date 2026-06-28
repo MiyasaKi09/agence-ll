@@ -38,7 +38,12 @@ const ogUrl = new URL(ogImage, Astro.site ?? Astro.url).toString();
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
 
     <!-- Favicon : remplace par ton monogramme exporté -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -86,5 +91,5 @@ const ogUrl = new URL(ogImage, Astro.site ?? Astro.url).toString();
   .regmark.tr { right: 14px; top: 14px; }
   .regmark.bl { left: 14px; bottom: 14px; }
   .regmark.br { right: 14px; bottom: 14px; }
-  @media (max-width: 760px) { .regmark { display: none; } }
+  @media (max-width: 48rem) { .regmark { display: none; } }
 </style>

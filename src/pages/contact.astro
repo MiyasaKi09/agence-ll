@@ -86,7 +86,11 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
     font-size: var(--step-0);
     border-radius: var(--radius);
   }
+  /* souris : on souligne juste le champ actif ; clavier : anneau de focus net */
   input:focus, select:focus, textarea:focus {
+    border-color: var(--terracotta);
+  }
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 2px solid var(--seal); outline-offset: 1px;
     border-color: transparent;
   }

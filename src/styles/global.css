@@ -104,7 +104,7 @@ a:not(.plain):hover {
   /* léger basculement « écrit à la main », halo papier pour l'effet « encre sur épreuve » */
   display: inline-block;
   transform: rotate(-3deg);
-  text-shadow: 0 1px 0 color-mix(in srgb, var(--paper) 60%, transparent);
+  text-shadow: 0 1px 0 rgba(238, 234, 225, 0.6); /* = --paper à 60% */
 }
 .lede { font-size: var(--step-1); line-height: 1.45; max-width: 46ch; color: var(--ink-soft); }
 
@@ -213,7 +213,7 @@ a:not(.plain):hover {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(115deg, color-mix(in srgb, var(--ink) 14%, transparent), transparent 48%);
+  background: linear-gradient(115deg, rgba(28, 26, 23, 0.14), transparent 48%); /* = --ink à 14% */
   pointer-events: none;
 }
 

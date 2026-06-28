@@ -45,7 +45,7 @@ const nav = [
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    background: rgba(238, 234, 225, 0.86); /* = --paper à 86% */
     backdrop-filter: saturate(1.2) blur(8px);
     -webkit-backdrop-filter: saturate(1.2) blur(8px);
     border-bottom: var(--rule);
@@ -109,8 +109,7 @@ const nav = [
     font-size: var(--step--1);
     letter-spacing: 0.08em;
     color: var(--ink-soft);
-    border: 1px solid var(--rule, color-mix(in srgb, var(--ink) 16%, transparent));
-    border-color: color-mix(in srgb, var(--ink) 16%, transparent);
+    border: 1px solid rgba(28, 26, 23, 0.16);
     padding: 0.25rem 0.55rem;
   }
   .lang .on { color: var(--seal); font-weight: 600; }
