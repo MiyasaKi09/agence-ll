@@ -5,6 +5,23 @@ import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
+import { storyblok } from '@storyblok/astro';
+
+// Storyblok : éditeur visuel + contenu en direct. On n'active l'intégration que si
+// un jeton est présent (sur Vercel) — ainsi un build local sans secrets reste vert.
+// Jeton de prévisualisation de préférence (lit brouillon + publié) ; sinon public.
+const storyblokToken =
+  process.env.STORYBLOK_PREVIEW_TOKEN || process.env.PUBLIC_STORYBLOK_TOKEN;
+const storyblokIntegration = storyblokToken
+  ? [
+      storyblok({
+        accessToken: storyblokToken,
+        apiOptions: { region: process.env.STORYBLOK_REGION || 'eu' },
+        bridge: true, // injecte le bridge → éditeur visuel + rechargement au changement
+        components: {}, // le pilote rend manuellement ; mapping ajouté à la migration
+      }),
+    ]
+  : [];
 
 // https://astro.build/config
 export default defineConfig({
@@ -28,9 +45,23 @@ export default defineConfig({
   output: 'static',
   adapter: vercel(),
 
+  // Derrière le proxy Vercel, Astro ne fait confiance à l'en-tête x-forwarded-host
+  // (le vrai domaine public) que si l'hôte est listé ici — sinon il retombe sur
+  // « localhost », ce qui casse le redirect_uri OAuth de l'admin Keystatic.
+  // Ajoute ton domaine final ici quand il sera branché.
+  security: {
+    allowedDomains: [
+      { hostname: 'agence-ll.vercel.app' },
+      { hostname: '**.vercel.app' }, // déploiements de prévisualisation
+      { hostname: 'agence-ll.fr' },
+      { hostname: 'www.agence-ll.fr' },
+    ],
+  },
+
   integrations: [
     react(),     // requis par l'admin Keystatic
     keystatic(),
+    ...storyblokIntegration,
     mdx(),
     sitemap({
       // on n'indexe pas l'admin / l'API

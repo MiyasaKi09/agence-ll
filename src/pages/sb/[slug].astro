@@ -1,0 +1,121 @@
+---
+// PILOTE Storyblok — valide le « tuyau » complet : jeton + région + SSR sur Vercel
+// + bridge éditeur visuel (clic-pour-éditer + mise à jour instantanée).
+// SSR (pas de pré-rendu) : le contenu est lu à chaque requête → mise à jour immédiate
+// sans redéploiement, et l'éditeur Storyblok affiche le brouillon en direct.
+export const prerender = false;
+
+import Base from '../../layouts/Base.astro';
+import { storyblokEditable, renderRichText } from '@storyblok/astro';
+import { getStory } from '../../storyblok/api';
+import { dateLongue } from '../../lib/journal';
+
+const { slug } = Astro.params;
+const story = slug ? await getStory(slug, Astro.url) : null;
+const c = story?.content as Record<string, any> | undefined;
+
+// Pour le pilote on ne gère que le composant « article ».
+const isArticle = c?.component === 'article';
+const corpsHtml = isArticle && c?.corps ? renderRichText(c.corps) : '';
+const dateObj = c?.date ? new Date(String(c.date).replace(' ', 'T')) : null;
+---
+<Base
+  title={story ? `${c?.titre ?? story.name} — Aperçu Storyblok` : 'Aperçu Storyblok'}
+  description={c?.extrait ?? 'Aperçu Storyblok'}
+>
+  {!story && (
+    <div class="container sb-empty">
+      <p class="meta">[ Storyblok ]</p>
+      <h1>Aperçu introuvable</h1>
+      <p>
+        Aucune story « {slug} » n'a été trouvée (ou le jeton/region n'est pas
+        configuré). Vérifie les variables d'environnement sur Vercel.
+      </p>
+    </div>
+  )}
+
+  {story && isArticle && (
+    <article class="container">
+      <div class="article" {...storyblokEditable(c as any)}>
+        <header class="art-head">
+          <p class="meta-line">
+            <span class="rubrique">{c?.rubrique}</span>
+            {dateObj && !isNaN(+dateObj) && (
+              <>
+                <span class="sep" aria-hidden="true">·</span>
+                <time datetime={dateObj.toISOString()}>{dateLongue(dateObj)}</time>
+              </>
+            )}
+            {c?.temps_lecture && (
+              <>
+                <span class="sep" aria-hidden="true">·</span>
+                <span>{c.temps_lecture}</span>
+              </>
+            )}
+          </p>
+          <h1>{c?.titre ?? story.name}</h1>
+          {c?.signature && <p class="signature">{c.signature}</p>}
+        </header>
+
+        {c?.image?.filename ? (
+          <figure class="hero">
+            <img src={c.image.filename} alt={c.image.alt ?? story.name} />
+          </figure>
+        ) : (
+          <div class="hero ph" role="img" aria-label={story.name}>
+            <span class="ph-cap">{c?.image_legende ?? '[ épreuve à venir ]'}</span>
+          </div>
+        )}
+
+        {c?.extrait && <p class="chapo">{c.extrait}</p>}
+
+        <div class="prose" set:html={corpsHtml} />
+
+        <p class="sb-flag meta">✎ Édité dans Storyblok — clique n'importe quel bloc dans l'éditeur visuel.</p>
+      </div>
+    </article>
+  )}
+
+  {story && !isArticle && (
+    <div class="container sb-empty">
+      <p class="meta">[ Storyblok · {c?.component} ]</p>
+      <h1>{story.name}</h1>
+      <p>Ce pilote ne rend que les articles pour l'instant. Composant lu : <code>{c?.component}</code>.</p>
+    </div>
+  )}
+</Base>
+
+<style>
+  .sb-empty { padding-block: var(--space-2xl); max-width: 46rem; }
+  .sb-empty h1 { font-size: var(--step-3); margin-block: var(--space-s); }
+
+  .article { max-width: 46rem; margin-inline: auto; padding-block: var(--space-xl) var(--space-2xl); }
+  .meta-line {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5ch;
+    font-family: var(--font-mono); font-size: var(--step--1);
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+  }
+  .meta-line .rubrique { color: var(--terracotta); }
+  .meta-line .sep { color: var(--stone-light); }
+  .art-head h1 { font-size: var(--step-3); margin-top: var(--space-s); }
+  .signature {
+    font-family: var(--font-display); font-style: italic; font-size: var(--step-1);
+    color: var(--ink-soft); margin-top: var(--space-s);
+  }
+  .hero { margin-block: var(--space-l); }
+  .hero img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: var(--rule); display: block; }
+  .hero.ph {
+    aspect-ratio: 3 / 2; display: grid; place-items: center; padding: var(--space-m);
+    border: var(--rule);
+    background: repeating-linear-gradient(135deg, #E4DED2 0 13px, #ECE6DA 13px 26px);
+  }
+  .hero .ph-cap {
+    font-family: var(--font-mono); font-size: var(--step--1); color: var(--stone);
+    background: rgba(238, 234, 225, 0.7); padding: 0.25rem 0.6rem; text-align: center;
+  }
+  .chapo {
+    font-family: var(--font-display); font-size: var(--step-2); line-height: 1.4;
+    color: var(--ink-soft); margin-bottom: var(--space-l);
+  }
+  .sb-flag { margin-top: var(--space-xl); color: var(--terracotta); }
+</style>
