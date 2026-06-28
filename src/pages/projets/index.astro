@@ -2,6 +2,10 @@
 import Base from '../../layouts/Base.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import { getCollection } from 'astro:content';
+import { getLocale, useTranslations } from '../../i18n/utils';
+
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 
 const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
@@ -12,8 +16,8 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
 >
   <section class="section container">
     <header class="page-head">
-      <p class="eyebrow">Travaux</p>
-      <h1>Projets</h1>
+      <p class="eyebrow">{t('projets.eyebrow')}</p>
+      <h1>{t('nav.projets')}</h1>
       <p class="lede">
         Concours, faisabilités, rénovations, chantiers. Une pratique qui part de
         l’existant et cherche la sobriété juste.
@@ -25,7 +29,7 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
         {projets.map((projet) => <ProjectCard projet={projet} />)}
       </div>
     ) : (
-      <p class="lede">Aucun projet publié pour l’instant.</p>
+      <p class="lede">{t('projets.empty')}</p>
     )}
   </section>
 </Base>

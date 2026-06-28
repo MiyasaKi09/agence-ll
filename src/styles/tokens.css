@@ -11,7 +11,7 @@
   --paper-deep:      #E4DED2; /* panneaux, alternance de fond */
   --ink:             #1C1A17; /* encre chaude — jamais noir pur */
   --ink-soft:        #4A463F;
-  --stone:           #8A8276; /* gris chaud — légendes, métadonnées, filets */
+  --stone:           #6D6359; /* gris chaud — légendes, métadonnées (contraste AA ≥ 4.5:1 sur --paper) */
   --stone-light:     #C7C0B4;
   --terracotta:      #A24B2C; /* terre cuite / argile cuite — accent principal */
   --terracotta-deep: #7E3A22;
@@ -52,9 +52,18 @@
   --gutter:  clamp(1.25rem, 5vw, 4rem);     /* marge latérale */
   --maxw:    1320px;                        /* largeur max du contenu */
 
+  /* — POINTS DE RUPTURE (référence ; CSS @media n'accepte pas var()) ——————
+     On garde une échelle cohérente entre composants :
+       24rem  · très petit mobile (masque l'indicateur FR·EN)
+       30rem  · mobile (masque le mot-marque du header)
+       36rem  · grand mobile
+       48rem  · tablette basse (masque les repères d'impression)
+       52rem  · tablette (grilles 2→1 colonne)
+       56rem  · petit desktop (accueil : hero/projets 2→1) */
+
   /* — DIVERS ————————————————————————————————————————————————————— */
-  --rule:   1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  --rule:   1px solid rgba(28, 26, 23, 0.16);   /* = --ink à 16% (sans color-mix → support universel) */
   --radius: 0;                              /* zéro arrondi — registre éditorial/architectural */
   --ease:   cubic-bezier(0.2, 0.7, 0.2, 1);
-  --shadow-press: 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent);
+  --shadow-press: 0 1px 0 rgba(28, 26, 23, 0.08);
 }

@@ -209,6 +209,29 @@ rouge), `annee`, `lieu`, `programme`, `statut` (`concours|étude|chantier|livré
 > un **placeholder tramé avec le numéro** (volontairement « épreuve à venir »). Le
 > site **build donc sans aucune image**.
 
+### 7bis. Contenu — modèle « article » (Journal)
+
+Le site est aussi un **support éditorial** : un fil d'articles (« Journal ») qui
+mêle retours de chantier, partis pris techniques, presse et distinctions. C'est la
+**logique** retenue de la direction « 01 éditorial » — rendue dans **le style
+maison existant** (Fraunces/Hanken/JetBrains Mono, palette papier/terre cuite,
+sceau, zéro arrondi), pas dans la palette du prototype.
+
+Collection `journal` dans `src/content.config.ts`. Champs : `titre`, `rubrique`
+(`chantiers|reflexions|presse|distinctions`), `date` (ISO), `tempsLecture?`,
+`extrait` (sert d'accroche **et** de chapô), `signature`, `image?`, `imageLegende?`
+(légende du placeholder), `projetLie?` (slug d'un projet → carte « Projet lié »),
+`linkedInUrl?`, `brouillon`.
+
+- **Pages** : `/journal` (index + **filtres par rubrique**, filtrage client + URL
+  `?rubrique=…`), `/journal/[id]` (article : chapô, corps MDX, projet lié, barre
+  de partage LinkedIn/copier-le-lien, navigation plus récent/plus ancien).
+- **Aperçu d'accueil** : section « Au journal » (3 derniers billets).
+- **Helpers** : `src/lib/journal.ts` (libellés de rubriques, formats de date).
+- **Composant** : `ArticleCard.astro`. Mêmes conventions que les projets (un
+  dossier par billet `src/content/journal/<slug>/index.mdx`, images colocalisées,
+  build sans aucune image — placeholder tramé + légende monospace `[ … ]`).
+
 ---
 
 ## 8. Formulaire de contact
@@ -281,23 +304,35 @@ dans le dépôt** (Markdown/JSON). **Aucune base, aucun serveur, gratuit (MIT).*
   conditionnellement (dev only)**, ou on déploie la route `/keystatic` séparément.
   C'est un pattern documenté et éprouvé (Astro + Keystatic + Claude Code).
 
-→ ✅ **DÉCISION (validée) : Keystatic est activé.** Zoé éditera les projets via
-l'interface. À intégrer en suivant les étapes ci-dessus (schéma **identique** aux
-content collections, gotcha SSR géré). Le contenu reste en **fichiers dans le dépôt** —
-toujours **aucune base**.
+→ ✅ **INTÉGRÉ ✓ (Keystatic).** Admin sur **`/keystatic`**, collections `projets`
+et `journal` (mêmes fichiers `.mdx` que les content collections), corps en
+`fields.mdx`. **Mode local** en dev ; **mode GitHub** en prod via
+`PUBLIC_KEYSTATIC_MODE=github` + secrets (voir **`docs/keystatic.md`**). Le site
+reste **statique** ; seules `/keystatic` et `/api/keystatic` tournent en SSR
+(`output: 'static'` + adaptateur `@astrojs/vercel`, intégrations `react()` +
+`keystatic()`). Toujours **aucune base** — le contenu vit dans le dépôt.
+Admin **en français** (`locale: 'fr-FR'`) + **sceau-pieuvre** en marque,
+**protégé par mot de passe** (`KEYSTATIC_PASSWORD`, middleware Basic Auth), et
+groupe **« Textes du site »** (singletons `accueil`/`agence`/`contact` →
+`src/content/site/*.json`, relus via `src/lib/site.ts`) pour éditer la prose
+(manifeste, savoir-faire, équipe…) sans coder.
 
 ---
 
 ## 12. Décisions — tranchées ✅ (28/06/2026)
 
-1. **CMS pour Zoé → OUI.** On intègre **Keystatic** (git-based, sans base) pour que Zoé
-   ajoute/édite les projets sans coder. Plan d'intégration en §11.
-2. **Bilingue FR/EN → OUI.** **FR par défaut**, **EN** en second. Mise en œuvre : i18n
-   natif d'Astro (`astro.config.mjs` → `i18n: { defaultLocale: 'fr', locales: ['fr','en'] }`,
-   `routing: { prefixDefaultLocale: false }` → FR à `/`, EN sous `/en/`). Côté contenu :
-   soit un champ `lang` + filtrage, soit un dossier par langue dans les collections (à
-   câbler **tôt**, ça structure le routage). Le **sélecteur `FR · EN`** est déjà dans le
-   header (prototype).
+1. **CMS pour Zoé → OUI → INTÉGRÉ ✓.** **Keystatic** (git-based, sans base) est en
+   place : admin `/keystatic`, projets + Journal. Détails §11 et `docs/keystatic.md`.
+2. **Bilingue FR/EN → OUI → INFRA EN PLACE (EN à finir).** i18n natif d'Astro câblé
+   (`astro.config.mjs` : `defaultLocale:'fr'`, `locales:['fr','en']`,
+   `prefixDefaultLocale:false`). Dictionnaire d'**interface** FR/EN dans
+   `src/i18n/` ; le chrome (header, footer, cartes) se traduit via
+   `Astro.currentLocale`. **Décision : on ne traduit que l'interface pour
+   l'instant** (le contenu — prose, articles, projets — reste FR). L'**arbre
+   `/en/` existe** (routes EN qui réutilisent les pages FR comme composants ;
+   `getStaticPaths` partagés via `src/lib/paths.ts`) et le **sélecteur FR·EN est
+   actif** (`readyLocales = ['fr','en']`). Pour ajouter une langue : créer ses
+   pages `/xx/` + l'ajouter au dictionnaire `src/i18n/ui.ts` et à `readyLocales`.
 3. **« Moment statement » → LÉGER.** On garde la **signature sceau/gravure** : le sceau
    se pose au chargement, hover discret. **Pas de 3D/WebGL/parallaxe** pour le moment
    (perf + sobriété). Rediscutable plus tard si l'on veut un geste plus spectaculaire.

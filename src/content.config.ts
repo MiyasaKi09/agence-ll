@@ -34,4 +34,36 @@ const projets = defineCollection({
     }),
 });
 
-export const collections = { projets };
+// Collection « journal » — le fil éditorial de l'agence (retours de chantier,
+// partis pris techniques, presse, distinctions). Un dossier par billet :
+// src/content/journal/<slug>/index.mdx (images colocalisées comme les projets).
+export const RUBRIQUES = ['chantiers', 'reflexions', 'presse', 'distinctions'] as const;
+
+const journal = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/journal' }),
+  schema: ({ image }) =>
+    z.object({
+      titre: z.string(),
+      // rubrique éditoriale — pilote le filtrage de l'index
+      rubrique: z.enum(RUBRIQUES),
+      // date de publication (ISO dans le frontmatter : 2026-05-28)
+      date: z.coerce.date(),
+      // ex. "4 min" — facultatif, sinon estimé à la lecture du corps
+      tempsLecture: z.string().optional(),
+      // accroche (sert d'extrait dans les listes ET de chapô en tête d'article)
+      extrait: z.string(),
+      // signature affichée sous le titre de l'article
+      signature: z.string().default("par l'atelier L&L"),
+      // image héro — FACULTATIVE (placeholder tramé sinon, comme les projets)
+      image: image().optional(),
+      // description de la photo attendue (légende du placeholder, ex. "[ pose de bottes de paille ]")
+      imageLegende: z.string().optional(),
+      // slug d'un projet de la collection « projets » → carte « Projet lié »
+      projetLie: z.string().optional(),
+      // lien vers le post LinkedIn d'origine quand le billet le prolonge
+      linkedInUrl: z.string().url().optional(),
+      brouillon: z.boolean().default(false),
+    }),
+});
+
+export const collections = { projets, journal };

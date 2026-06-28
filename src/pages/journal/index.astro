@@ -1,0 +1,127 @@
+---
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+import { RUBRIQUE_ORDER } from '../../lib/journal';
+import { getLocale, useTranslations } from '../../i18n/utils';
+import type { UIKey } from '../../i18n/ui';
+
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+
+const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const chips = [
+  { key: 'tout', label: t('journal.all') },
+  ...RUBRIQUE_ORDER.map((r) => ({ key: r, label: t(`rubrique.${r}` as UIKey) })),
+];
+---
+<Base
+  title="Journal — Agence L&L"
+  description="Le journal de l'Agence L&L : retours de chantier, partis pris techniques, presse et distinctions."
+>
+  <section class="section container">
+    <header class="journal-head">
+      <p class="eyebrow">{t('journal.eyebrow')}</p>
+      <h1>Ce que nous apprenons, <em>chantier après chantier</em>.</h1>
+      <p class="lede">
+        Retours de chantier, partis pris techniques, revues de presse et distinctions.
+        Certains billets prolongent nos publications&nbsp;; d'autres précisent un détail
+        de chantier.
+      </p>
+    </header>
+
+    {articles.length > 0 ? (
+      <>
+        <div class="filters" role="group" aria-label="Filtrer par rubrique">
+          {chips.map((c, i) => (
+            <button
+              type="button"
+              class={`chip${i === 0 ? ' is-active' : ''}`}
+              data-chip={c.key}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >{c.label}</button>
+          ))}
+        </div>
+
+        <div class="journal-grid">
+          {articles.map((article) => <ArticleCard article={article} compact />)}
+        </div>
+
+        <p class="journal-empty" hidden>{t('journal.empty')}</p>
+      </>
+    ) : (
+      <p class="lede">{t('journal.bientot')}</p>
+    )}
+  </section>
+</Base>
+
+<script>
+  const grid = document.querySelector('.journal-grid');
+  if (grid) {
+    const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-chip]'));
+    const cards = Array.from(grid.children) as HTMLElement[];
+    const empty = document.querySelector<HTMLElement>('.journal-empty');
+
+    const apply = (r: string, pushUrl = true) => {
+      let visible = 0;
+      for (const card of cards) {
+        const show = r === 'tout' || card.dataset.rubrique === r;
+        card.hidden = !show;
+        if (show) visible++;
+      }
+      for (const chip of chips) {
+        const on = chip.dataset.chip === r;
+        chip.classList.toggle('is-active', on);
+        chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      if (empty) empty.hidden = visible !== 0;
+      if (pushUrl) {
+        const url = new URL(location.href);
+        if (r === 'tout') url.searchParams.delete('rubrique');
+        else url.searchParams.set('rubrique', r);
+        history.replaceState({}, '', url);
+      }
+    };
+
+    chips.forEach((chip) => chip.addEventListener('click', () => apply(chip.dataset.chip!)));
+
+    const initial = new URLSearchParams(location.search).get('rubrique') ?? 'tout';
+    const known = chips.some((c) => c.dataset.chip === initial);
+    apply(known ? initial : 'tout', false);
+  }
+</script>
+
+<style>
+  .journal-head { max-width: 760px; margin-bottom: var(--space-xl); }
+  .journal-head h1 { font-size: var(--step-3); margin-block: var(--space-xs) var(--space-m); max-width: 18ch; }
+  .journal-head .lede { max-width: 56ch; }
+
+  /* Chips de filtre — forme « tampon » à angles vifs (style maison, zéro arrondi). */
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 0.6rem;
+    margin-bottom: clamp(1.8rem, 4vw, 2.6rem);
+  }
+  .chip {
+    font-family: var(--font-mono); font-size: var(--step--1);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-soft);
+    border: 1px solid var(--stone-light);
+    padding: 0.5rem 1rem;
+    transition: color 0.2s var(--ease), background 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .chip:hover { border-color: var(--terracotta); color: var(--ink); }
+  .chip.is-active {
+    background: var(--ink); color: var(--paper); border-color: var(--ink);
+  }
+
+  .journal-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(2rem, 4vw, 2.6rem) clamp(1.6rem, 3vw, 2rem);
+  }
+  .journal-empty { margin-top: var(--space-l); color: var(--ink-soft); }
+
+  @media (max-width: 60rem) { .journal-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 38rem) { .journal-grid { grid-template-columns: 1fr; } }
+</style>

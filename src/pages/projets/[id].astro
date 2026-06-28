@@ -1,25 +1,20 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { Image } from 'astro:assets';
-import { getCollection, render } from 'astro:content';
-import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import { projetStaticPaths } from '../../lib/paths';
 import MaterialBand from '../../components/MaterialBand.astro';
+import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
+import type { UIKey } from '../../i18n/ui';
 
-export const getStaticPaths = (async () => {
-  const projets = await getCollection('projets', ({ data }) => !data.brouillon);
-  return projets.map((entry) => ({
-    params: { id: entry.id },
-    props: { entry },
-  }));
-}) satisfies GetStaticPaths;
+export const getStaticPaths = projetStaticPaths;
 
 const { entry } = Astro.props;
 const d = entry.data;
 const { Content } = await render(entry);
 
-const statutLabel: Record<string, string> = {
-  concours: 'Concours', 'étude': 'Étude', chantier: 'Chantier', 'livré': 'Livré',
-};
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 
 // Matière du placeholder de couverture — déterministe, identique à la vignette.
 const matieres = ['chanvre', 'pise', 'bois'] as const;
@@ -28,12 +23,12 @@ const matiere = matieres[seed % matieres.length];
 
 // Fiche technique — n'affiche que les champs renseignés
 const fiche = [
-  ['Programme', d.programme],
-  ['Lieu', d.lieu],
-  ['Année', String(d.annee)],
-  ['Surface', d.surface],
-  ['Maîtrise d’ouvrage', d.maitrise_ouvrage],
-  ['Statut', statutLabel[d.statut] ?? d.statut],
+  [t('fiche.programme'), d.programme],
+  [t('fiche.lieu'), d.lieu],
+  [t('fiche.annee'), String(d.annee)],
+  [t('fiche.surface'), d.surface],
+  [t('fiche.mo'), d.maitrise_ouvrage],
+  [t('fiche.statut'), t(`statut.${d.statut}` as UIKey)],
 ].filter(([, v]) => Boolean(v)) as [string, string][];
 ---
 <Base title={`${d.titre} — Agence L&L`} description={d.resume}>
@@ -55,7 +50,7 @@ const fiche = [
       </figure>
     ) : (
       <div class="cover container">
-        <MaterialBand material={matiere} caption={`${d.programme} · épreuve à venir`} alt={`Visuel à venir — ${d.titre}`} />
+        <MaterialBand material={matiere} caption={`${d.programme} · ${t('epreuve.aVenir')}`} alt={`${d.titre}`} />
       </div>
     )}
 
@@ -90,7 +85,7 @@ const fiche = [
     )}
 
     <nav class="section container back">
-      <a href="/projets">← Tous les projets</a>
+      <a href={localizePath('/projets', locale)}>{t('projet.back')}</a>
     </nav>
   </article>
 </Base>

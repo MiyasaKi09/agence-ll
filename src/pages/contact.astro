@@ -1,5 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getContact } from '../lib/site';
+import { getLocale, useTranslations } from '../i18n/utils';
+
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 
 // FORMULAIRE — site statique, donc il faut un service côté serveur :
 //  • Le plus simple : Formspree (remplace l'action ci-dessous par ton endpoint).
@@ -7,6 +12,9 @@ import Base from '../layouts/Base.astro';
 //    crée une route API qui envoie l'e-mail via Resend (clé en variable d'env).
 // Voir CLAUDE.md › « Formulaire de contact ».
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
+
+// Accroche éditable depuis le CMS (sinon valeur par défaut).
+const { lede } = await getContact();
 ---
 <Base
   title="Contact — Agence L&L"
@@ -14,12 +22,9 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
 >
   <section class="section container contact-grid">
     <div class="intro stack">
-      <p class="eyebrow">Contact</p>
+      <p class="eyebrow">{t('nav.contact')}</p>
       <h1>Parlons de votre <em>projet</em>.</h1>
-      <p class="lede">
-        Maîtrise d’ouvrage publique ou privée, concours, faisabilité, rénovation —
-        écrivez-nous, nous revenons vers vous rapidement.
-      </p>
+      <p class="lede">{lede}</p>
       <div class="coords stack">
         <p>
           <span class="meta">E-mail</span><br />
@@ -34,19 +39,19 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
 
     <form class="form" action={FORMSPREE_ENDPOINT} method="POST">
       <div class="field">
-        <label for="nom">Nom</label>
+        <label for="nom">{t('form.nom')}</label>
         <input id="nom" name="nom" type="text" required autocomplete="name" />
       </div>
       <div class="field">
-        <label for="email">E-mail</label>
+        <label for="email">{t('form.email')}</label>
         <input id="email" name="email" type="email" required autocomplete="email" />
       </div>
       <div class="field">
-        <label for="organisation">Organisation <span class="opt">(facultatif)</span></label>
+        <label for="organisation">{t('form.organisation')} <span class="opt">{t('form.optionnel')}</span></label>
         <input id="organisation" name="organisation" type="text" autocomplete="organization" />
       </div>
       <div class="field">
-        <label for="type">Type de projet</label>
+        <label for="type">{t('form.type')}</label>
         <select id="type" name="type">
           <option value="renovation">Rénovation énergétique</option>
           <option value="logement">Logement</option>
@@ -56,10 +61,10 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
         </select>
       </div>
       <div class="field">
-        <label for="message">Message</label>
+        <label for="message">{t('form.message')}</label>
         <textarea id="message" name="message" rows="6" required></textarea>
       </div>
-      <button type="submit" class="submit">Envoyer →</button>
+      <button type="submit" class="submit">{t('cta.envoyer')} →</button>
       <p class="form-note meta">
         En envoyant ce formulaire, vous acceptez d’être recontacté·e par l’Agence L&amp;L.
       </p>
@@ -86,7 +91,11 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
     font-size: var(--step-0);
     border-radius: var(--radius);
   }
+  /* souris : on souligne juste le champ actif ; clavier : anneau de focus net */
   input:focus, select:focus, textarea:focus {
+    border-color: var(--terracotta);
+  }
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 2px solid var(--seal); outline-offset: 1px;
     border-color: transparent;
   }

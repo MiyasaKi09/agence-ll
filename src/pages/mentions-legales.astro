@@ -1,9 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 
 // Gabarit de mentions légales (droit français). Les champs entre crochets
 // [À COMPLÉTER] sont à renseigner par Julien avant la mise en ligne :
 // forme juridique, SIRET, adresse, hébergeur, etc.
+// Le corps juridique reste en FR (contenu) ; seuls les éléments d'interface
+// se traduisent — la page est réutilisée telle quelle par la route /en/.
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
 ---
 <Base
   title="Mentions légales — Agence L&L"
@@ -66,7 +71,7 @@ import Base from '../layouts/Base.astro';
         Caractères : Fraunces, Hanken&nbsp;Grotesk, JetBrains&nbsp;Mono, Caveat.
       </p>
 
-      <p class="back"><a href="/">← Retour à l’accueil</a></p>
+      <p class="back"><a href={localizePath('/', locale)}>{t('cta.retourAccueil')}</a></p>
     </div>
   </section>
 </Base>

@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { getLocale, useTranslations, alternatePath, isLocaleReady } from '../i18n/utils';
 
 interface Props {
   title?: string;
@@ -15,11 +16,18 @@ const {
   ogImage = '/og-default.jpg',
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
-const ogUrl = new URL(ogImage, Astro.site ?? Astro.url).toString();
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+const ogLocale = locale === 'en' ? 'en_GB' : 'fr_FR';
+
+const base = Astro.site ?? Astro.url;
+const canonical = new URL(Astro.url.pathname, base).toString();
+const ogUrl = new URL(ogImage, base).toString();
+const hrefFr = new URL(alternatePath(Astro.url.pathname, 'fr'), base).toString();
+const hrefEn = new URL(alternatePath(Astro.url.pathname, 'en'), base).toString();
 ---
 <!doctype html>
-<html lang="fr">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -30,15 +38,25 @@ const ogUrl = new URL(ogImage, Astro.site ?? Astro.url).toString();
     <link rel="canonical" href={canonical} />
     <meta name="theme-color" content="#EEEAE1" />
 
+    <!-- Alternances de langue (FR/EN) — EN annoncé seulement quand les pages existent -->
+    <link rel="alternate" hreflang="fr" href={hrefFr} />
+    {isLocaleReady('en') && <link rel="alternate" hreflang="en" href={hrefEn} />}
+    <link rel="alternate" hreflang="x-default" href={hrefFr} />
+
     <!-- Open Graph / réseaux -->
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:locale" content={ogLocale} />
     <meta property="og:site_name" content="Agence L&L" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
 
     <!-- Favicon : remplace par ton monogramme exporté -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -52,7 +70,7 @@ const ogUrl = new URL(ogImage, Astro.site ?? Astro.url).toString();
     />
   </head>
   <body>
-    <a href="#contenu" class="skip-link">Aller au contenu</a>
+    <a href="#contenu" class="skip-link">{t('skip')}</a>
 
     {/* Repères d'impression — clin d'œil à l'épreuve typographique (décoratifs). */}
     <span class="regmark tl" aria-hidden="true"></span>
@@ -86,5 +104,5 @@ const ogUrl = new URL(ogImage, Astro.site ?? Astro.url).toString();
   .regmark.tr { right: 14px; top: 14px; }
   .regmark.bl { left: 14px; bottom: 14px; }
   .regmark.br { right: 14px; bottom: 14px; }
-  @media (max-width: 760px) { .regmark { display: none; } }
+  @media (max-width: 48rem) { .regmark { display: none; } }
 </style>

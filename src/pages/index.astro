@@ -1,16 +1,35 @@
 ---
 import Base from '../layouts/Base.astro';
 import Monogram from '../components/Monogram.astro';
-import MaterialBand from '../components/MaterialBand.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import { getAccueil } from '../lib/site';
+import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 
-const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
-  .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee)
+const locale = getLocale(Astro.url);
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
+
+const { manifesteTexte } = await getAccueil();
+
+const projetsAll = (await getCollection('projets', ({ data }) => !data.brouillon))
+  .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
+// Projet à la une = le premier (ordre manuel, sinon plus récent)
+const featured = projetsAll[0] ?? null;
+
+const matieres = ['chanvre', 'pise', 'bois'] as const;
+const matiere = featured
+  ? matieres[[...featured.id].reduce((a, c) => a + c.charCodeAt(0), 0) % matieres.length]
+  : 'pise';
+
+// Le Journal est le cœur de l'accueil : on en montre 4.
+const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, 4);
 ---
 <Base>
-  <!-- ——— HERO : la thèse de l'agence ——— -->
+  <!-- ——— HERO : la thèse, compacte ——— -->
   <section class="hero">
     <div class="container hero-grid">
       <div class="hero-text">
@@ -20,92 +39,74 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
           Une agence pour une architecture sobre — ancrée dans la matière,
           attentive au vivant, au service des collectivités et de l'habitat.
         </p>
-        <a class="hero-cta plain" href="/projets">
-          <span>Voir nos projets</span><span class="arr" aria-hidden="true">→</span>
+        <a class="hero-cta plain" href={L('/journal')}>
+          <span>{t('cta.lireJournal')}</span><span class="arr" aria-hidden="true">→</span>
         </a>
       </div>
 
       <div class="seal-col">
-        <Monogram variant="seal" size={224} title="Sceau de l'Agence L&L" />
+        <Monogram variant="seal" size={210} title="Sceau de l'Agence L&L" />
       </div>
     </div>
-
-    <!-- bandeau de matière (placeholder — à remplacer par une photo de chantier) -->
-    <div class="container">
-      <MaterialBand
-        material="pise"
-        caption="Pisé — terre crue · mur intérieur"
-        alt="Détail d'un mur en pisé (terre crue)"
-        class="hero-band"
-      />
-    </div>
   </section>
 
-  <!-- ——— APPROCHE ——— -->
-  <section class="section container approche" aria-labelledby="approche-h">
+  <!-- ——— AU JOURNAL (le cœur de l'accueil) ——— -->
+  <section class="section container journal-home" id="journal" aria-labelledby="journal-h">
     <div class="section-head">
-      <h2 id="approche-h">Notre approche</h2>
-      <span class="meta">Trois engagements</span>
-    </div>
-
-    <div class="piliers">
-      <article class="pilier">
-        <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M7 12a9 9 0 0 1 16-3" /><path d="M25 20a9 9 0 0 1-16 3" />
-          <path d="M23 5v5h-5" /><path d="M9 27v-5h5" />
-        </svg>
-        <p class="eyebrow tag">— Sobriété</p>
-        <h3>Faire mieux avec moins</h3>
-        <p>
-          Rénover plutôt que démolir, réemployer plutôt que produire. Chaque projet
-          part du diagnostic de l'existant et vise une vraie performance énergétique,
-          pas un label de façade.
-        </p>
-      </article>
-
-      <article class="pilier">
-        <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <rect x="5" y="5" width="22" height="22" /><path d="M5 13h22" /><path d="M5 20h22" /><path d="M13 5v22" opacity="0.5" />
-        </svg>
-        <p class="eyebrow tag">— Matière</p>
-        <h3>Construire biosourcé</h3>
-        <p>
-          Pisé, chaux-chanvre, fibre de bois, terre crue. Des matériaux sains, locaux
-          et à faible empreinte, choisis pour le confort qu'ils offrent autant que pour
-          leur bilan carbone.
-        </p>
-      </article>
-
-      <article class="pilier">
-        <svg class="glyph" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M16 28V12" /><path d="M16 16c0-6 4-10 10-10 0 6-4 10-10 10Z" /><path d="M16 21c0-4-3-7-8-7 0 4 3 7 8 7Z" />
-        </svg>
-        <p class="eyebrow tag">— Vivant</p>
-        <h3>Faire place à la biodiversité</h3>
-        <p>
-          Sols vivants, plantations naturalistes, continuités écologiques.
-          L'architecture compose avec le paysage et le climat plutôt que de s'y imposer.
-        </p>
-      </article>
-    </div>
-  </section>
-
-  <!-- ——— PROJETS SÉLECTIONNÉS ——— -->
-  <section class="section container projets" aria-labelledby="projets-h">
-    <div class="section-head">
-      <h2 id="projets-h">Projets sélectionnés</h2>
-      <a class="section-link plain" href="/projets">
-        <span>Tous les projets</span><span class="arr" aria-hidden="true">→</span>
+      <h2 id="journal-h">{t('home.auJournal')}</h2>
+      <a class="section-link plain" href={L('/journal')}>
+        <span>{t('cta.toutVoir')}</span><span class="arr" aria-hidden="true">→</span>
       </a>
     </div>
 
-    {projets.length > 0 ? (
-      <div class="projets-grid">
-        {projets.map((projet) => <ProjectCard projet={projet} />)}
+    {articles.length > 0 ? (
+      <div class="journal-grid">
+        {articles.map((article) => <ArticleCard article={article} />)}
       </div>
     ) : (
-      <p class="lede">Les premiers projets seront publiés ici très bientôt.</p>
+      <p class="lede">{t('journal.bientot')}</p>
     )}
+  </section>
+
+  <!-- ——— PROJET À LA UNE ——— -->
+  {featured && (
+    <section class="section container featured-sec" aria-labelledby="featured-h">
+      <p class="eyebrow">{t('home.projetUne')}</p>
+      <a class="featured plain" href={L(`/projets/${featured.id}`)}>
+        <span class="f-num num" aria-hidden="true">N°{featured.data.numero}</span>
+        <div class="featured-visual">
+          {featured.data.couverture ? (
+            <Image
+              src={featured.data.couverture}
+              alt={featured.data.titre}
+              widths={[720, 1200, 1800]}
+              sizes="(max-width: 82rem) 100vw, 1240px"
+            />
+          ) : (
+            <div class={`featured-ph mat mat-${matiere}`} aria-hidden="true">
+              <span class="ph-cap">{t('placeholder.projet')}</span>
+            </div>
+          )}
+        </div>
+        <div class="featured-cap">
+          <span id="featured-h" class="f-titre">{featured.data.titre}</span>
+          <span class="f-meta meta">{featured.data.lieu} · {featured.data.annee} →</span>
+        </div>
+      </a>
+    </section>
+  )}
+
+  <!-- ——— MANIFESTE ——— -->
+  <section class="section container manifeste" aria-labelledby="manifeste-h">
+    <p class="eyebrow m-label">{t('home.lagence')}</p>
+    <div class="m-body">
+      <h2 id="manifeste-h">
+        Nous partons toujours de l'existant — du bâti, du sol, du climat — pour
+        faire mieux avec <em>moins</em>.
+      </h2>
+      <p>{manifesteTexte}</p>
+      <a class="m-link" href={L('/agence')}>{t('cta.enSavoirPlus')} →</a>
+    </div>
   </section>
 
   <!-- ——— CONTACT ——— -->
@@ -113,8 +114,8 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
     <div class="contact-inner">
       <div>
         <h2 id="contact-h">Un lieu, un programme, une <em>intention</em>&nbsp;?</h2>
-        <a class="contact-cta plain" href="/contact">
-          <span>Écrire à l'agence</span><span class="arr" aria-hidden="true">→</span>
+        <a class="contact-cta plain" href={L('/contact')}>
+          <span>{t('cta.ecrire')}</span><span class="arr" aria-hidden="true">→</span>
         </a>
       </div>
       <div class="contact-side">
@@ -130,12 +131,12 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
 
 <style>
   /* HERO */
-  .hero { padding-block: clamp(2.6rem, 7vw, 6rem) clamp(2rem, 5vw, 3.5rem); }
+  .hero { padding-block: clamp(2.4rem, 6vw, 4.5rem) clamp(1.5rem, 4vw, 2.5rem); }
   .hero-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
     gap: clamp(1.5rem, 4vw, 3rem);
-    align-items: start;
+    align-items: center;
   }
   .hero h1 { margin-top: 0.9rem; max-width: 14ch; }
   .hero .lede { max-width: 34ch; margin-top: 1.5rem; }
@@ -152,9 +153,9 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
   .hero-cta:hover { gap: 1.1ch; border-color: var(--seal); }
   .hero-cta:hover .arr { transform: translateX(3px); }
 
-  .seal-col { display: flex; justify-content: flex-end; padding-top: 0.4rem; color: var(--seal); }
+  .seal-col { display: flex; justify-content: flex-end; color: var(--seal); }
   .seal-col :global(svg) {
-    width: clamp(170px, 22vw, 236px); height: auto;
+    width: clamp(160px, 20vw, 220px); height: auto;
     animation: press 0.7s var(--ease) both 0.15s;
     transform-origin: center;
   }
@@ -162,23 +163,55 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
     from { opacity: 0; transform: scale(1.06) rotate(-3deg); }
     to   { opacity: 1; transform: scale(1) rotate(0); }
   }
-  .hero-band { margin-top: clamp(2.4rem, 6vw, 4.2rem); }
 
-  /* APPROCHE */
-  .piliers {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(1.4rem, 3vw, 2.6rem);
+  /* PROJET À LA UNE */
+  .featured-sec { padding-block: clamp(1.5rem, 4vw, 3rem); }
+  .featured-sec .eyebrow { margin-bottom: var(--space-s); }
+  .featured { position: relative; display: block; }
+  .f-num { position: absolute; top: -24px; left: -10px; z-index: 3; font-size: clamp(2.2rem, 4vw, 3rem); }
+  .featured-visual {
+    aspect-ratio: 21 / 9; min-height: 240px; overflow: hidden; border: var(--rule);
+    transition: border-color 0.25s var(--ease);
   }
-  .pilier { padding-top: 0.4rem; }
-  .glyph { height: 30px; width: auto; margin-bottom: 1rem; color: var(--terracotta); }
-  .pilier .tag { display: block; margin-bottom: 0.7rem; letter-spacing: 0.12em; }
-  .pilier h3 { font-size: var(--step-1); margin-bottom: 0.55rem; }
-  .pilier p { color: var(--ink-soft); max-width: 34ch; }
+  .featured-visual :global(img) {
+    width: 100%; height: 100%; object-fit: cover; filter: saturate(0.92);
+    transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
+  }
+  .featured:hover .featured-visual { border-color: var(--terracotta); }
+  .featured:hover .featured-visual :global(img) { transform: scale(1.02); filter: saturate(1); }
+  .featured-ph { width: 100%; height: 100%; display: grid; place-items: center; }
+  .featured-ph .ph-cap {
+    position: relative; z-index: 2;
+    font-family: var(--font-mono); font-size: var(--step--1); color: var(--paper);
+    background: rgba(28, 26, 23, 0.55); padding: 0.3rem 0.7rem; letter-spacing: 0.04em;
+  }
+  .featured-cap {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: var(--space-s); margin-top: var(--space-s);
+  }
+  .f-titre {
+    font-family: var(--font-display); font-style: italic; font-size: var(--step-2);
+    color: var(--ink); transition: color 0.2s var(--ease);
+  }
+  .featured:hover .f-titre { color: var(--terracotta-deep); }
 
-  /* PROJETS */
-  .projets-grid {
+  /* MANIFESTE */
+  .manifeste {
+    display: grid; grid-template-columns: 180px 1fr; gap: clamp(1.5rem, 4vw, 2.5rem);
+    border-top: var(--rule); border-bottom: var(--rule);
+  }
+  .m-label { padding-top: 0.4rem; }
+  .m-body h2 { font-size: var(--step-2); max-width: 24ch; }
+  .m-body p { margin-top: var(--space-m); color: var(--ink-soft); font-size: var(--step-1); max-width: 52ch; }
+  .m-link {
+    display: inline-block; margin-top: var(--space-m);
+    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em;
+  }
+
+  /* AU JOURNAL — le cœur de l'accueil */
+  .journal-grid {
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(1.6rem, 4vw, 3.4rem) clamp(1.6rem, 4vw, 3rem);
+    gap: clamp(2rem, 4vw, 3rem) clamp(1.6rem, 4vw, 2.6rem);
   }
 
   /* CONTACT */
@@ -211,8 +244,11 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
   @media (max-width: 56rem) {
     .hero-grid { grid-template-columns: 1fr; }
     .seal-col { justify-content: flex-start; order: -1; }
-    .piliers { grid-template-columns: 1fr; gap: 2rem; }
-    .projets-grid { grid-template-columns: 1fr; gap: 2.6rem; }
+    .manifeste { grid-template-columns: 1fr; gap: var(--space-s); }
+    .journal-grid { grid-template-columns: 1fr; gap: 2.6rem; }
     .contact-inner { grid-template-columns: 1fr; align-items: start; }
+  }
+  @media (max-width: 38rem) {
+    .featured-visual { aspect-ratio: 4 / 3; }
   }
 </style>

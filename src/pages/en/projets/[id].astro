@@ -1,0 +1,8 @@
+---
+// Route EN d'une fiche projet : mêmes chemins que la version FR (paths partagés),
+// rendu via la page FR (interface traduite par l'URL, contenu en FR).
+import ProjetDetail from '../../projets/[id].astro';
+import { projetStaticPaths } from '../../../lib/paths';
+export const getStaticPaths = projetStaticPaths;
+---
+<ProjetDetail {...Astro.props} />
