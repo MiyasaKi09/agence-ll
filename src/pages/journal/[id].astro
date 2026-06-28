@@ -1,0 +1,248 @@
+---
+import Base from '../../layouts/Base.astro';
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import { rubriqueLabel, dateLongue, tempsLecture } from '../../lib/journal';
+
+export const getStaticPaths = (async () => {
+  const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+  // index des projets, pour résoudre la carte « Projet lié »
+  const projets = await getCollection('projets');
+  const projetById = new Map(projets.map((p) => [p.id, p]));
+
+  return articles.map((entry, i) => {
+    const lie = entry.data.projetLie ? projetById.get(entry.data.projetLie) ?? null : null;
+    const projetLie = lie
+      ? { id: lie.id, titre: lie.data.titre, lieu: lie.data.lieu, annee: lie.data.annee, numero: lie.data.numero }
+      : null;
+    const toRef = (e?: (typeof articles)[number]) => (e ? { id: e.id, titre: e.data.titre } : null);
+    return {
+      params: { id: entry.id },
+      props: {
+        entry,
+        projetLie,
+        plusRecent: toRef(articles[i - 1]), // article plus récent (gauche)
+        plusAncien: toRef(articles[i + 1]),  // article plus ancien (droite)
+      },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { entry, projetLie, plusRecent, plusAncien } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const lecture = d.tempsLecture ?? tempsLecture(d.extrait);
+const canonical = new URL(`/journal/${entry.id}`, Astro.site ?? Astro.url).toString();
+const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}`;
+---
+<Base title={`${d.titre} — Journal — Agence L&L`} description={d.extrait}>
+  <article class="container">
+    <div class="article">
+      <header class="art-head">
+        <a class="back plain" href="/journal">← Journal</a>
+        <p class="meta-line">
+          <span class="rubrique">{rubriqueLabel(d.rubrique)}</span>
+          <span class="sep" aria-hidden="true">·</span>
+          <time datetime={d.date.toISOString()}>{dateLongue(d.date)}</time>
+          <span class="sep" aria-hidden="true">·</span>
+          <span>{lecture} de lecture</span>
+        </p>
+        <h1>{d.titre}</h1>
+        <p class="signature">{d.signature}</p>
+      </header>
+
+      <!-- Image héro — vraie photo si disponible, sinon placeholder tramé -->
+      {d.image ? (
+        <figure class="hero">
+          <Image src={d.image} alt={d.titre} widths={[600, 980, 1400]} sizes="(max-width: 46rem) 100vw, 46rem" />
+        </figure>
+      ) : (
+        <div class="hero ph" role="img" aria-label={`Visuel à venir — ${d.titre}`}>
+          <span class="ph-cap">{d.imageLegende ?? '[ photo à venir ]'}</span>
+        </div>
+      )}
+
+      <!-- Chapô (l'accroche) puis corps -->
+      <p class="chapo">{d.extrait}</p>
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <!-- Projet lié -->
+      {projetLie && (
+        <a class="projet-lie plain" href={`/projets/${projetLie.id}`}>
+          <span class="pl-num num" aria-hidden="true">N°{projetLie.numero}</span>
+          <span class="pl-body">
+            <span class="pl-label">Projet lié</span>
+            <span class="pl-titre">{projetLie.titre}</span>
+            <span class="pl-meta meta">{projetLie.lieu} · {projetLie.annee} →</span>
+          </span>
+        </a>
+      )}
+
+      <!-- Barre de partage -->
+      <div class="share">
+        <span class="share-label">Partager&nbsp;:</span>
+        <a class="pill plain" href={linkedInShare} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <button type="button" class="pill" id="copy-link" data-url={canonical}>Copier le lien</button>
+        {d.linkedInUrl && (
+          <a class="also plain" href={d.linkedInUrl} target="_blank" rel="noopener noreferrer">
+            Aussi publié sur LinkedIn ↗
+          </a>
+        )}
+      </div>
+
+      <!-- Précédent / suivant (par date) -->
+      {(plusRecent || plusAncien) && (
+        <nav class="prevnext" aria-label="Autres articles">
+          <div class="pn pn-prev">
+            {plusRecent && (
+              <a class="plain" href={`/journal/${plusRecent.id}`}>
+                <span class="pn-label">← Plus récent</span>
+                <span class="pn-titre">{plusRecent.titre}</span>
+              </a>
+            )}
+          </div>
+          <div class="pn pn-next">
+            {plusAncien && (
+              <a class="plain" href={`/journal/${plusAncien.id}`}>
+                <span class="pn-label">Plus ancien →</span>
+                <span class="pn-titre">{plusAncien.titre}</span>
+              </a>
+            )}
+          </div>
+        </nav>
+      )}
+    </div>
+  </article>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>Lien copié</div>
+</Base>
+
+<script>
+  const btn = document.getElementById('copy-link');
+  const toast = document.getElementById('toast');
+  let timer: number | undefined;
+  btn?.addEventListener('click', async () => {
+    const url = btn.getAttribute('data-url') || location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // repli pour contextes non sécurisés / vieux navigateurs (API obsolète)
+      const ta = document.createElement('textarea');
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      (document as unknown as { execCommand: (c: string) => void }).execCommand('copy');
+      ta.remove();
+    }
+    if (toast) {
+      toast.hidden = false;
+      requestAnimationFrame(() => toast.classList.add('is-on'));
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        toast.classList.remove('is-on');
+        window.setTimeout(() => { toast.hidden = true; }, 250);
+      }, 1800);
+    }
+  });
+</script>
+
+<style>
+  .article { max-width: 46rem; margin-inline: auto; padding-block: var(--space-xl) var(--space-2xl); }
+
+  .back { font-family: var(--font-mono); font-size: var(--step--1); color: var(--stone); }
+  .meta-line {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5ch;
+    font-family: var(--font-mono); font-size: var(--step--1);
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+    margin-top: var(--space-m);
+  }
+  .meta-line .rubrique { color: var(--terracotta); }
+  .meta-line .sep { color: var(--stone-light); }
+  .art-head h1 { font-size: var(--step-3); margin-top: var(--space-s); }
+  .signature {
+    font-family: var(--font-display); font-style: italic; font-size: var(--step-1);
+    color: var(--ink-soft); margin-top: var(--space-s);
+  }
+
+  .hero { margin-block: var(--space-l); }
+  .hero :global(img) { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: var(--rule); }
+  .hero.ph {
+    aspect-ratio: 3 / 2; display: grid; place-items: center; padding: var(--space-m);
+    border: var(--rule);
+    background: repeating-linear-gradient(135deg, #E4DED2 0 13px, #ECE6DA 13px 26px);
+  }
+  .hero .ph-cap {
+    font-family: var(--font-mono); font-size: var(--step--1); color: var(--stone);
+    background: rgba(238, 234, 225, 0.7); padding: 0.25rem 0.6rem; text-align: center;
+  }
+
+  .chapo {
+    font-family: var(--font-display); font-size: var(--step-2); line-height: 1.4;
+    color: var(--ink-soft); max-width: none; margin-bottom: var(--space-l);
+  }
+
+  /* Carte « Projet lié » */
+  .projet-lie {
+    display: flex; align-items: center; gap: var(--space-m);
+    background: var(--paper-deep); border: var(--rule);
+    padding: var(--space-s) var(--space-m);
+    margin-top: var(--space-xl);
+    transition: border-color 0.2s var(--ease);
+  }
+  .projet-lie:hover { border-color: var(--terracotta); }
+  .pl-num { font-size: var(--step-2); flex: none; }
+  .pl-body { display: flex; flex-direction: column; gap: 0.15rem; }
+  .pl-label {
+    font-family: var(--font-mono); font-size: var(--step--1); text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--terracotta);
+  }
+  .pl-titre { font-family: var(--font-display); font-size: var(--step-1); }
+  .projet-lie:hover .pl-titre { color: var(--terracotta-deep); }
+
+  /* Barre de partage */
+  .share {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+    border-top: var(--rule); border-bottom: var(--rule);
+    padding-block: var(--space-m); margin-top: var(--space-xl);
+  }
+  .share-label { font-family: var(--font-mono); font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+  .pill {
+    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em;
+    border: 1px solid var(--stone-light); padding: 0.4rem 0.9rem; color: var(--ink-soft);
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .pill:hover { color: var(--ink); border-color: var(--terracotta); }
+  .also { margin-left: auto; font-family: var(--font-mono); font-size: var(--step--1); color: var(--stone); }
+
+  /* Précédent / suivant */
+  .prevnext {
+    display: flex; justify-content: space-between; gap: var(--space-m);
+    margin-top: var(--space-xl);
+  }
+  .pn { max-width: 22ch; }
+  .pn-next { text-align: right; margin-left: auto; }
+  .pn-label { display: block; font-family: var(--font-mono); font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--stone); }
+  .pn-titre { display: block; font-family: var(--font-display); font-size: var(--step-1); margin-top: 0.25rem; transition: color 0.2s var(--ease); }
+  .pn a:hover .pn-titre { color: var(--terracotta-deep); }
+
+  /* Toast « lien copié » */
+  .toast {
+    position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 0.5rem);
+    background: var(--ink); color: var(--paper);
+    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em;
+    padding: 0.6rem 1rem; z-index: 80;
+    opacity: 0; transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+  .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 38rem) {
+    .article { padding-block: var(--space-l) var(--space-xl); }
+    .prevnext { flex-direction: column; gap: var(--space-l); }
+    .pn-next { text-align: left; margin-left: 0; }
+  }
+</style>

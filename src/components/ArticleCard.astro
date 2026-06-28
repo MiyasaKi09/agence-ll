@@ -1,0 +1,89 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { rubriqueLabel, dateCourte } from '../lib/journal';
+
+interface Props {
+  article: CollectionEntry<'journal'>;
+  /** masque l'extrait (grille Journal) ; l'aperçu d'accueil l'affiche */
+  compact?: boolean;
+}
+const { article, compact = false } = Astro.props;
+const d = article.data;
+---
+<a href={`/journal/${article.id}`} class="article-card plain" data-rubrique={d.rubrique}>
+  <div class="frame">
+    {d.image ? (
+      <Image
+        src={d.image}
+        alt={d.titre}
+        widths={[360, 600, 900]}
+        sizes="(max-width: 52rem) 100vw, 33vw"
+        loading="lazy"
+      />
+    ) : (
+      <div class="ph" aria-hidden="true">
+        <span class="ph-cap">{d.imageLegende ?? '[ photo à venir ]'}</span>
+      </div>
+    )}
+  </div>
+
+  <div class="body">
+    <p class="meta-line">
+      <span class="rubrique">{rubriqueLabel(d.rubrique)}</span>
+      <span class="sep" aria-hidden="true">·</span>
+      <span class="date"><time datetime={d.date.toISOString()}>{dateCourte(d.date)}</time></span>
+    </p>
+    <h3 class="titre">{d.titre}</h3>
+    {!compact && <p class="extrait">{d.extrait}</p>}
+  </div>
+</a>
+
+<style>
+  .article-card { display: block; }
+  .frame {
+    position: relative;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border: var(--rule);
+    background: var(--paper-deep);
+    transition: border-color 0.25s var(--ease), transform 0.15s var(--ease);
+  }
+  .frame :global(img) {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(0.92);
+    transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
+  }
+  .ph {
+    width: 100%; height: 100%;
+    display: grid; place-items: center; padding: var(--space-s);
+    background: repeating-linear-gradient(135deg,
+      #E4DED2 0 11px,
+      #ECE6DA 11px 22px);
+  }
+  .ph-cap {
+    font-family: var(--font-mono); font-size: var(--step--1);
+    letter-spacing: 0.02em; color: var(--stone); text-align: center;
+    background: rgba(238, 234, 225, 0.7); padding: 0.2rem 0.5rem;
+  }
+  .article-card:hover .frame { border-color: var(--terracotta); transform: translateY(-2px); }
+  .article-card:hover .frame :global(img) { transform: scale(1.03); filter: saturate(1); }
+
+  .body { padding-top: 0.9rem; }
+  .meta-line {
+    display: flex; align-items: center; gap: 0.5ch;
+    font-family: var(--font-mono); font-size: var(--step--1);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .rubrique { color: var(--terracotta); }
+  .meta-line .sep { color: var(--stone-light); }
+  .date { color: var(--stone); }
+
+  .titre {
+    font-size: var(--step-1);
+    margin-top: 0.45rem;
+    transition: color 0.2s var(--ease);
+  }
+  .article-card:hover .titre { color: var(--terracotta-deep); }
+  .extrait { margin-top: 0.5rem; color: var(--ink-soft); font-size: var(--step-0); max-width: 42ch; }
+</style>

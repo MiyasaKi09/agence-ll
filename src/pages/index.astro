@@ -3,11 +3,16 @@ import Base from '../layouts/Base.astro';
 import Monogram from '../components/Monogram.astro';
 import MaterialBand from '../components/MaterialBand.astro';
 import ProjectCard from '../components/ProjectCard.astro';
+import ArticleCard from '../components/ArticleCard.astro';
 import { getCollection } from 'astro:content';
 
 const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee)
   .slice(0, 4);
+
+const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
 ---
 <Base>
   <!-- ——— HERO : la thèse de l'agence ——— -->
@@ -108,6 +113,21 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
     )}
   </section>
 
+  <!-- ——— AU JOURNAL ——— -->
+  {articles.length > 0 && (
+    <section class="section container journal-preview" aria-labelledby="journal-h">
+      <div class="section-head">
+        <h2 id="journal-h">Au journal</h2>
+        <a class="section-link plain" href="/journal">
+          <span>Tout voir</span><span class="arr" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="preview-grid">
+        {articles.map((article) => <ArticleCard article={article} />)}
+      </div>
+    </section>
+  )}
+
   <!-- ——— CONTACT ——— -->
   <section class="section container contact" id="contact" aria-labelledby="contact-h">
     <div class="contact-inner">
@@ -181,6 +201,12 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
     gap: clamp(1.6rem, 4vw, 3.4rem) clamp(1.6rem, 4vw, 3rem);
   }
 
+  /* AU JOURNAL (aperçu) */
+  .preview-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.8rem, 4vw, 2.6rem) clamp(1.6rem, 3vw, 2rem);
+  }
+
   /* CONTACT */
   .contact-inner {
     border-top: 1px solid var(--ink);
@@ -213,6 +239,7 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
     .seal-col { justify-content: flex-start; order: -1; }
     .piliers { grid-template-columns: 1fr; gap: 2rem; }
     .projets-grid { grid-template-columns: 1fr; gap: 2.6rem; }
+    .preview-grid { grid-template-columns: 1fr; gap: 2.4rem; }
     .contact-inner { grid-template-columns: 1fr; align-items: start; }
   }
 </style>

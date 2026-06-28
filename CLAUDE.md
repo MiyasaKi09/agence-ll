@@ -209,6 +209,29 @@ rouge), `annee`, `lieu`, `programme`, `statut` (`concours|étude|chantier|livré
 > un **placeholder tramé avec le numéro** (volontairement « épreuve à venir »). Le
 > site **build donc sans aucune image**.
 
+### 7bis. Contenu — modèle « article » (Journal)
+
+Le site est aussi un **support éditorial** : un fil d'articles (« Journal ») qui
+mêle retours de chantier, partis pris techniques, presse et distinctions. C'est la
+**logique** retenue de la direction « 01 éditorial » — rendue dans **le style
+maison existant** (Fraunces/Hanken/JetBrains Mono, palette papier/terre cuite,
+sceau, zéro arrondi), pas dans la palette du prototype.
+
+Collection `journal` dans `src/content.config.ts`. Champs : `titre`, `rubrique`
+(`chantiers|reflexions|presse|distinctions`), `date` (ISO), `tempsLecture?`,
+`extrait` (sert d'accroche **et** de chapô), `signature`, `image?`, `imageLegende?`
+(légende du placeholder), `projetLie?` (slug d'un projet → carte « Projet lié »),
+`linkedInUrl?`, `brouillon`.
+
+- **Pages** : `/journal` (index + **filtres par rubrique**, filtrage client + URL
+  `?rubrique=…`), `/journal/[id]` (article : chapô, corps MDX, projet lié, barre
+  de partage LinkedIn/copier-le-lien, navigation plus récent/plus ancien).
+- **Aperçu d'accueil** : section « Au journal » (3 derniers billets).
+- **Helpers** : `src/lib/journal.ts` (libellés de rubriques, formats de date).
+- **Composant** : `ArticleCard.astro`. Mêmes conventions que les projets (un
+  dossier par billet `src/content/journal/<slug>/index.mdx`, images colocalisées,
+  build sans aucune image — placeholder tramé + légende monospace `[ … ]`).
+
 ---
 
 ## 8. Formulaire de contact
