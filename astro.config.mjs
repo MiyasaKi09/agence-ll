@@ -28,6 +28,19 @@ export default defineConfig({
   output: 'static',
   adapter: vercel(),
 
+  // Derrière le proxy Vercel, Astro ne fait confiance à l'en-tête x-forwarded-host
+  // (le vrai domaine public) que si l'hôte est listé ici — sinon il retombe sur
+  // « localhost », ce qui casse le redirect_uri OAuth de l'admin Keystatic.
+  // Ajoute ton domaine final ici quand il sera branché.
+  security: {
+    allowedDomains: [
+      { hostname: 'agence-ll.vercel.app' },
+      { hostname: '**.vercel.app' }, // déploiements de prévisualisation
+      { hostname: 'agence-ll.fr' },
+      { hostname: 'www.agence-ll.fr' },
+    ],
+  },
+
   integrations: [
     react(),     // requis par l'admin Keystatic
     keystatic(),
