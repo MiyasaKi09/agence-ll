@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import { teinteFor, teinteVars } from '../lib/teinte';
 import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 
 const locale = getLocale(Astro.url);
@@ -107,7 +106,7 @@ const AXONO = [
       <div class="recents-grid">
         {projetsRecents.map((p, i) => (
           <a class="rcard plain" href={L(`/projets/${p.id}`)}>
-            <div class="rcard-axo" style={teinteVars(teinteFor(p.id))} aria-hidden="true" set:html={AXONO[i % AXONO.length]} />
+            <div class="rcard-axo" aria-hidden="true" set:html={AXONO[i % AXONO.length]} />
             <h3 class="rcard-titre">{p.data.titre}</h3>
             <p class="rcard-meta">{p.data.lieu} · {p.data.annee}</p>
           </a>
@@ -140,8 +139,7 @@ const AXONO = [
   /* Placeholder tramé (diagonale) — comme le design */
   .ph {
     width: 100%; height: 100%; display: grid; place-items: center;
-    background:
-      repeating-linear-gradient(135deg, #EFE9DE 0 11px, #E7DFD0 11px 22px);
+    background: repeating-linear-gradient(135deg, var(--ph1, #E7DFD0) 0 13px, var(--surface, #EFE9DE) 13px 26px);
   }
   .ph-cap {
     font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
