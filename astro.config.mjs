@@ -5,8 +5,6 @@ import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
-import tina from '@tinacms/astro/integration';
-import { tinaAdminDevRedirect } from '@tinacms/astro/vite';
 
 // https://astro.build/config
 export default defineConfig({
@@ -46,7 +44,6 @@ export default defineConfig({
   integrations: [
     react(),     // requis par l'admin Keystatic
     keystatic(),
-    tina(),      // TinaCMS : éditeur visuel sur /admin (servi par ton propre site)
     mdx(),
     sitemap({
       // on n'indexe pas les admins / l'API
@@ -65,11 +62,5 @@ export default defineConfig({
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'viewport',
-  },
-
-  vite: {
-    // Redirige /admin vers l'éditeur Tina en dev ; bundle Tina côté SSR.
-    plugins: [tinaAdminDevRedirect()],
-    ssr: { noExternal: ['@tinacms/astro', '@tinacms/bridge'] },
   },
 });
