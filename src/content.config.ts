@@ -14,6 +14,9 @@ const projets = defineCollection({
       lieu: z.string(),
       // programme / typologie : sert de filtre éditorial
       programme: z.string(), // ex. "Logement social", "Rénovation énergétique", "Équipement public"
+      // catégorie éditoriale (select Tina) — pilote la teinte de page + les filtres.
+      // Facultative : à défaut, déduite du programme/des tags (cf. projets-data.ts).
+      categorie: z.enum(['renovation', 'logements', 'equipements', 'neuf']).optional(),
       statut: z.enum(['concours', 'étude', 'chantier', 'livré']).default('étude'),
       surface: z.string().optional(), // ex. "1 240 m²"
       maitrise_ouvrage: z.string().optional(),
@@ -27,7 +30,14 @@ const projets = defineCollection({
       // son chemin relatif (ex. couverture: "./couverture.jpg"). Le schéma valide tout seul.
       couverture: image().optional(),
       galerie: z
-        .array(z.object({ src: image(), alt: z.string() }))
+        .array(
+          z.object({
+            src: image(),
+            alt: z.string(),
+            // coché dans l'admin → l'image alimente le carrousel en tête de fiche
+            carrousel: z.boolean().default(false),
+          }),
+        )
         .optional(),
       tags: z.array(z.string()).default([]),
       // brouillon: true => masqué du site (utile pour préparer un projet)

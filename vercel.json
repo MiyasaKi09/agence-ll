@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build"
+  "buildCommand": "if [ -n \"$TINA_TOKEN\" ]; then npm run build; else npm run build:local; fi"
 }

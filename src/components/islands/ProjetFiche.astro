@@ -1,0 +1,120 @@
+---
+// Région éditable de la fiche projet (îlot Tina). Rendue à l'identique sur la
+// page (build statique) et par l'endpoint /tina-island/projet pendant l'édition.
+// Les marqueurs `data-tina-field={tinaField(projet, 'champ')}` rendent chaque
+// élément cliquable-à-éditer dans l'admin.
+import { tinaField } from '@tinacms/astro/tina-field';
+import TinaMarkdown from '@tinacms/astro/TinaMarkdown.astro';
+import { resolveProjetImage } from '../../lib/projet-images';
+
+interface Props {
+  projet: any;
+  slug: string;
+}
+const { projet, slug } = Astro.props;
+const p = projet ?? {};
+
+const STATUTS: Record<string, string> = {
+  concours: 'Concours', 'étude': 'Étude', chantier: 'Chantier', 'livré': 'Livré',
+};
+
+// Carrousel : seules les images cochées « carrousel » ; à défaut, toute la galerie.
+const galerie: any[] = Array.isArray(p.galerie) ? p.galerie.filter(Boolean) : [];
+const carrousel = galerie.filter((g) => g?.carrousel);
+const shots = (carrousel.length ? carrousel : galerie);
+
+// Résolution des images (optimisées si colocalisées dans src/, sinon brutes).
+const cover = await resolveProjetImage(slug, p.couverture, { width: 1600 });
+const bandSrcs = galerie.slice(0, 2);
+const bands = await Promise.all(bandSrcs.map((g) => resolveProjetImage(slug, g?.src, { width: 2000 })));
+
+const fiche: [string, string, string][] = ([
+  ['Programme', p.programme, 'programme'],
+  ['Surface', p.surface, 'surface'],
+  ['Maîtrise d’ouvrage', p.maitrise_ouvrage, 'maitrise_ouvrage'],
+  ['Mission', p.mission, 'mission'],
+  ['Équipe', p.equipe, 'equipe'],
+  ['Matériaux', p.materiaux, 'materiaux'],
+  ['Statut', STATUTS[p.statut] ?? p.statut, 'statut'],
+] as [string, string, string][]).filter(([, v]) => Boolean(v));
+---
+<!-- Hero plein cadre (déclenche le carrousel via #open-carousel dans la page) -->
+<button class="hero" type="button" id="open-carousel" aria-label={`Ouvrir les images — ${p.titre ?? ''}`}>
+  {cover ? (
+    <img src={cover.src} width={cover.width} height={cover.height} alt={p.titre ?? ''} data-tina-field={tinaField(p, 'couverture')} />
+  ) : (
+    <div class="ph hero-ph" data-tina-field={tinaField(p, 'couverture')}>
+      <span class="ph-cap">[ photo — {p.titre}, vue principale ]</span>
+    </div>
+  )}
+  <span class="voir">⤢ Voir les images · {shots.length || galerie.length || 4}</span>
+</button>
+
+<p class="kicker"><span data-tina-field={tinaField(p, 'programme')}>{p.programme}</span> · <span data-tina-field={tinaField(p, 'statut')}>{STATUTS[p.statut] ?? p.statut}</span></p>
+<h1 data-tina-field={tinaField(p, 'titre')}>{p.titre}</h1>
+<p class="loc"><span data-tina-field={tinaField(p, 'lieu')}>{p.lieu}</span> · <span data-tina-field={tinaField(p, 'annee')}>{p.annee}</span></p>
+
+<div class="body-grid">
+  <div class="body-col">
+    <p class="lede" data-tina-field={tinaField(p, 'resume')}>{p.resume}</p>
+    <div class="prose" data-tina-field={tinaField(p, 'corps')}>
+      <TinaMarkdown content={p.corps} />
+    </div>
+  </div>
+
+  <aside class="aside">
+    <dl class="fiche">
+      {fiche.map(([k, v, field]) => (
+        <div class="fiche-row">
+          <dt>{k}</dt>
+          <dd data-tina-field={tinaField(p, field)}>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  </aside>
+</div>
+
+<!-- Images plein bord -->
+<div class="bands">
+  {bands.map((b, i) => (
+    b ? (
+      <div class="band band-img"><img src={b.src} width={b.width} height={b.height} alt={`${p.titre} — vue ${i + 1}`} loading="lazy" /></div>
+    ) : (
+      <div class="band band-ph" aria-hidden="true"></div>
+    )
+  ))}
+</div>
+
+<style>
+  .ph { background: repeating-linear-gradient(135deg, var(--ph1, #E7DFD0) 0 13px, var(--surface, #EFE9DE) 13px 26px); display: grid; place-items: end start; }
+  .ph-cap { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; color: var(--stone); background: rgba(246, 242, 235, 0.72); padding: 0.3rem 0.6rem; margin: 1rem; }
+  .hero { position: relative; display: block; width: 100%; margin-top: 1rem; padding: 0; border: var(--rule); overflow: hidden; cursor: pointer; text-align: left; transition: opacity 0.2s var(--ease); }
+  .hero:hover { opacity: 0.94; }
+  .hero :global(img), .hero img { width: 100%; aspect-ratio: 16 / 8; object-fit: cover; display: block; }
+  .hero-ph { aspect-ratio: 16 / 8; width: 100%; }
+  .voir { position: absolute; top: 1rem; right: 1rem; font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--paper); background: rgba(26, 23, 20, 0.78); padding: 0.45rem 0.8rem; }
+
+  .kicker { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teinte-accent, var(--terracotta)); margin-top: clamp(1.6rem, 4vw, 2.4rem); }
+  h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(2.2rem, 6.5vw, 5rem); line-height: 1.0; color: var(--ink); margin-top: 0.6rem; }
+  .loc { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.05em; color: var(--stone); margin-top: 0.7rem; }
+
+  .body-grid { display: grid; grid-template-columns: 1fr 20rem; gap: clamp(2rem, 6vw, 6rem); margin-top: clamp(2rem, 5vw, 3rem); align-items: start; }
+  .lede { font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: clamp(1.4rem, 2.7vw, 2rem); line-height: 1.38; color: var(--ink); margin-bottom: 1.4rem; max-width: none; }
+  .body-col .prose { max-width: none; }
+
+  .fiche { display: grid; }
+  .fiche-row { padding-block: 0.7rem; border-top: var(--rule); }
+  .fiche-row:last-child { border-bottom: var(--rule); }
+  .fiche-row dt { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone); }
+  .fiche-row dd { font-family: var(--font-body); font-size: 0.95rem; color: var(--ink); margin-top: 0.25rem; }
+
+  .bands { margin: clamp(2.5rem, 6vw, 5rem) calc(50% - 50vw) 0; display: flex; flex-direction: column; gap: clamp(8px, 1.4vw, 18px); }
+  .band { width: 100%; }
+  .band-ph { height: clamp(360px, 60vw, 820px); background: repeating-linear-gradient(135deg, var(--ph1) 0 16px, var(--surface) 16px 32px); }
+  .band-img img { width: 100%; height: clamp(360px, 60vw, 820px); object-fit: cover; display: block; }
+
+  @media (max-width: 52rem) {
+    .body-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .aside { order: 2; }
+  }
+</style>

@@ -4,6 +4,8 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
+import tina from '@tinacms/astro/integration';
+import { tinaAdminDevRedirect } from '@tinacms/astro/vite';
 import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
@@ -42,13 +44,17 @@ export default defineConfig({
   },
 
   integrations: [
-    react(),     // requis par l'admin Keystatic
-    keystatic(),
+    react(),       // requis par l'admin Keystatic (temporaire)
+    keystatic(),   // CMS actuel — sera retiré au profit de Tina (étape suivante)
+    tina(),        // TinaCMS — édition visuelle React-free ; admin /admin
     mdx(),
     sitemap({
-      // on n'indexe pas les admins / l'API
+      // on n'indexe pas les admins / l'API / l'endpoint d'îlot Tina
       filter: (page) =>
-        !page.includes('/keystatic') && !page.includes('/admin') && !page.includes('/api/'),
+        !page.includes('/keystatic') &&
+        !page.includes('/admin') &&
+        !page.includes('/tina-island') &&
+        !page.includes('/api/'),
     }),
   ],
 
@@ -62,5 +68,11 @@ export default defineConfig({
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'viewport',
+  },
+
+  vite: {
+    // Redirige /admin vers l'éditeur Tina en dev ; bundle Tina côté SSR.
+    plugins: [tinaAdminDevRedirect()],
+    ssr: { noExternal: ['@tinacms/astro', '@tinacms/bridge'] },
   },
 });
