@@ -68,8 +68,13 @@ const dShort = (d: Date) =>
 </Base>
 
 <script>
-  const grid = document.querySelector('.journal-grid');
-  if (grid) {
+  // Initialisé sur astro:page-load (et non au scope module) pour fonctionner
+  // après une navigation ClientRouter — sinon les filtres seraient morts si
+  // /journal est atteint depuis une autre page. Garde anti-double-init.
+  function initJournalFilters() {
+    const grid = document.querySelector<HTMLElement>('.journal-grid');
+    if (!grid || grid.dataset.wired === '1') return;
+    grid.dataset.wired = '1';
     const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-chip]'));
     const cards = Array.from(grid.children) as HTMLElement[];
     const empty = document.querySelector<HTMLElement>('.journal-empty');
@@ -95,6 +100,7 @@ const dShort = (d: Date) =>
     const initial = new URLSearchParams(location.search).get('rubrique') ?? 'tout';
     apply(chips.some((c) => c.dataset.chip === initial) ? initial : 'tout', false);
   }
+  document.addEventListener('astro:page-load', initJournalFilters);
 </script>
 
 <style>

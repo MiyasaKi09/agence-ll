@@ -28,6 +28,17 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  /* recoloration douce du fond quand la teinte change (fiche projet) */
+  transition: background-color 0.5s var(--ease), color 0.5s var(--ease);
+}
+
+/* Transitions de vue (ClientRouter) — fondu enchaîné un peu plus lent et calé
+   sur la courbe maison, pour le « morphing » immersif entre pages projet.
+   Astro neutralise déjà ces animations sous prefers-reduced-motion. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.5s;
+  animation-timing-function: var(--ease);
 }
 
 /* Grain de papier — « matière imprimée » sans image, voilé sur tout l'écran.

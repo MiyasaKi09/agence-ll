@@ -14,12 +14,24 @@
   --surface:         #EFE9DE; /* alias utilisé par les axonométries */
   --ink:             #1A1714; /* encre profonde — quasi noir chaud */
   --ink-soft:        #403A31; /* texte secondaire */
-  --stone:           #8A8275; /* gris chaud — métadonnées, légendes mono */
-  --stone-light:     #CFC6B6;
+  --stone:           #6A6356; /* gris chaud — métadonnées, légendes mono.
+                                 Assombri depuis #8A8275 pour atteindre le
+                                 contraste AA (≥4,5:1 sur --paper ET sur toutes
+                                 les surfaces de teinte par catégorie) —
+                                 plancher a11y non négociable (cf. CLAUDE.md §5). */
+  --stone-light:     #CFC6B6;  /* filets / bordures décoratives uniquement */
   --terracotta:      #B86B4B; /* terre cuite — accent unique */
   --terracotta-deep: #9A5538;
   --seal:            #B86B4B; /* (compat) — même accent que la terre cuite */
   --moss:            #5A5349; /* (compat) — neutralisé en gris chaud */
+
+  /* Fond du bandeau de nav (verre dépoli) et du footer — recolorés par
+     teintePageVars() sur la fiche projet, avec transition douce (cf. Base). */
+  --nav-bg:          rgba(246, 242, 235, 0.82);
+  --footer-bg:       #1A1714;
+  /* placeholders tramés (axonométries, vignettes) — suivent la teinte */
+  --ph1:             #E7DFD0;
+  --ph2:             #D8CCB7;
 
   /* — TYPOGRAPHIE ————————————————————————————————————————————————
      Display : Cormorant Garamond (serif éditorial — titres, mots-marque)

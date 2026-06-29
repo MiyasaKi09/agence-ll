@@ -2,6 +2,8 @@
 import Base from '../layouts/Base.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import Axono from '../components/Axono.astro';
+import { teinteFor } from '../lib/teinte';
 import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 
 const locale = getLocale(Astro.url);
@@ -24,13 +26,6 @@ const RUB: Record<string, string> = {
 // Date courte JJ.MM.AA
 const dShort = (d: Date) =>
   `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getFullYear()).slice(-2)}`;
-
-// 3 axonométries (reprises du design) — vignettes des projets récents
-const AXONO = [
-  `<svg viewBox="-53.568 -72 96.744 126" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="31.2,18.0 -10.4,42.0 -10.4,-6.0 31.2,-30.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 -10.4,42.0 -10.4,-6.0 -41.6,-24.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-48.0 31.2,-30.0 10.4,-42.0 -20.8,-60.0" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,-24.0 -10.4,-6.0 10.4,-42.0 -20.8,-60.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="31.2,-30.0 -10.4,-6.0 10.4,-42.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><line x1="-20.784" y1="-60" x2="10.392" y2="-42" stroke="#2A2620" stroke-width="1.1" stroke-linecap="round"/></svg>`,
-  `<svg viewBox="-53.568 -60 159.096 150" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="93.5,54.0 52.0,78.0 52.0,54.0 93.5,30.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 52.0,78.0 52.0,54.0 -41.6,0.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-24.0 93.5,30.0 72.7,6.0 -20.8,-48.0" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,0.0 52.0,54.0 72.7,6.0 -20.8,-48.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="93.5,30.0 52.0,54.0 72.7,6.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><line x1="-20.784" y1="-48" x2="72.744" y2="6" stroke="#2A2620" stroke-width="1.1" stroke-linecap="round"/></svg>`,
-  `<svg viewBox="-53.568 -48 167.41 144" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="83.1,48.0 41.6,72.0 41.6,36.0 83.1,12.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 41.6,72.0 41.6,36.0 -41.6,-12.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-36.0 83.1,12.0 41.6,36.0 -41.6,-12.0" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="101.8,68.4 74.8,84.0 74.8,55.2 101.8,39.6" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="47.8,68.4 74.8,84.0 74.8,55.2 47.8,39.6" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="74.8,24.0 101.8,39.6 74.8,55.2 47.8,39.6" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
-];
 ---
 <Base>
   <!-- ——— PROJET À LA UNE ——— -->
@@ -104,9 +99,9 @@ const AXONO = [
       </div>
 
       <div class="recents-grid">
-        {projetsRecents.map((p, i) => (
+        {projetsRecents.map((p) => (
           <a class="rcard plain" href={L(`/projets/${p.id}`)}>
-            <div class="rcard-axo" aria-hidden="true" set:html={AXONO[i % AXONO.length]} />
+            <Axono id={p.id} teinte={teinteFor(p.id)} class="rcard-axo" />
             <h3 class="rcard-titre">{p.data.titre}</h3>
             <p class="rcard-meta">{p.data.lieu} · {p.data.annee}</p>
           </a>
@@ -203,12 +198,8 @@ const AXONO = [
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: clamp(1.6rem, 4vw, 3rem);
   }
-  .rcard-axo {
-    aspect-ratio: 3 / 2; display: grid; place-items: center; padding: 1rem 0;
-    --ph1: #E7DECF; --ph2: #D8CCB7; --surface: #F4EFE6;
-    transition: transform 0.4s var(--ease);
-  }
-  .rcard:hover .rcard-axo { transform: translateY(-4px); }
+  .rcard :global(.rcard-axo) { margin-block: 0.2rem; }
+  .rcard:hover :global(.axono) { transform: translateY(-4px); }
   .rcard-titre {
     font-family: var(--font-display); font-weight: 500; font-size: 1.4rem; line-height: 1.15;
     color: var(--ink); margin-top: 0.4rem; transition: color 0.2s var(--ease);

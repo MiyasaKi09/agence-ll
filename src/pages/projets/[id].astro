@@ -7,6 +7,7 @@ import { projetStaticPaths } from '../../lib/paths';
 import { teinteFor, teintePageVars } from '../../lib/teinte';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 import type { UIKey } from '../../i18n/ui';
+import type { ImageMetadata } from 'astro';
 
 export const getStaticPaths = projetStaticPaths;
 
@@ -24,7 +25,6 @@ const all = (await getCollection('projets', ({ data }) => !data.brouillon))
 const idx = all.findIndex((p) => p.id === entry.id);
 const prev = idx > 0 ? all[idx - 1] : null;
 const next = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null;
-const axIndex = (e: typeof entry) => all.findIndex((p) => p.id === e.id);
 
 const fiche = [
   [t('fiche.programme'), d.programme],
@@ -36,24 +36,36 @@ const fiche = [
   [t('fiche.statut'), t(`statut.${d.statut}` as UIKey)],
 ].filter(([, v]) => Boolean(v)) as [string, string][];
 
-const galCount = d.galerie?.length ?? 0;
 const teinte = teinteFor(entry.id);
+
+// — Carrousel : vues réelles (galerie) sinon « épreuves à venir » légendées —
+const ANGLES = [135, 45, 90, 160];
+const DEFAULT_SHOTS = ['vue principale', 'détail de façade', 'espace intérieur', 'insertion urbaine'];
+type Slide = { label: string; img: ImageMetadata | null; angle: number };
+const slides: Slide[] = d.galerie?.length
+  ? d.galerie.map((g, i) => ({ label: g.alt || 'vue', img: g.src, angle: ANGLES[i % 4] }))
+  : DEFAULT_SHOTS.map((label, i) => ({ label, img: null, angle: ANGLES[i % 4] }));
+const shotCount = slides.length;
+const meta = `${d.lieu} · ${d.annee}`;
+
+// Bandes pleine largeur sous la description (2) — images réelles ou épreuves
+const bands = d.galerie?.length ? d.galerie.slice(0, 2).map((g) => g.src) : [null, null];
 ---
 <Base title={`${d.titre} — Agence L&L`} description={d.resume} theme={teintePageVars(teinte)}>
   <article class="container">
     <a class="back plain" href={L('/projets')}>← {t('projet.back').replace('← ', '')}</a>
 
-    <!-- Hero -->
-    <div class="hero">
+    <!-- Hero plein cadre (cliquable → carrousel) -->
+    <button class="hero" type="button" id="open-carousel" aria-label={`Ouvrir les images — ${d.titre}`}>
       {d.couverture ? (
         <Image src={d.couverture} alt={d.titre} widths={[720, 1200, 1800]} sizes="100vw" />
       ) : (
-        <div class="ph hero-ph" role="img" aria-label={d.titre}>
+        <div class="ph hero-ph">
           <span class="ph-cap">[ photo — {d.titre}, vue principale ]</span>
         </div>
       )}
-      {galCount > 0 && <span class="voir">⤢ Voir les images · {galCount}</span>}
-    </div>
+      <span class="voir">⤢ Voir les images · {shotCount}</span>
+    </button>
 
     <!-- Titre -->
     <p class="kicker">{d.programme} · {t(`statut.${d.statut}` as UIKey)}</p>
@@ -74,14 +86,17 @@ const teinte = teinteFor(entry.id);
             <span class="compass" aria-hidden="true">↑<br />N</span>
             <svg class="plan-svg" viewBox="0 0 320 240" role="img" aria-label="Plan de situation" preserveAspectRatio="xMidYMid meet">
               <rect width="320" height="240" fill="var(--ph1)" />
+              <!-- voies -->
+              <rect x="0" y="110" width="320" height="20" fill="rgba(26,23,20,.05)" stroke="rgba(26,23,20,.10)" stroke-width="1" />
+              <rect x="96" y="0" width="18" height="240" fill="rgba(26,23,20,.05)" stroke="rgba(26,23,20,.10)" stroke-width="1" />
               <!-- parcelles voisines -->
-              <rect x="22" y="22" width="74" height="74" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
-              <rect x="138" y="22" width="78" height="58" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
-              <rect x="234" y="22" width="64" height="58" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
-              <rect x="22" y="144" width="74" height="74" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
-              <rect x="234" y="150" width="64" height="68" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="22" y="18" width="58" height="74" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="130" y="16" width="74" height="76" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="222" y="22" width="74" height="70" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="22" y="146" width="58" height="74" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="226" y="148" width="70" height="74" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
               <!-- parcelle du projet (surlignée dans la teinte) -->
-              <rect x="138" y="138" width="78" height="80" fill="var(--teinte-accent, var(--terracotta))" stroke="var(--ink)" stroke-width="1.6" />
+              <rect x="130" y="142" width="80" height="82" fill="var(--teinte-accent, var(--terracotta))" stroke="var(--ink)" stroke-width="1.6" />
             </svg>
           </div>
         </div>
@@ -97,17 +112,16 @@ const teinte = teinteFor(entry.id);
       </aside>
     </div>
 
-    <!-- Galerie -->
-    {galCount > 0 && (
-      <div class="galerie">
-        {d.galerie!.map((img) => (
-          <figure>
-            <Image src={img.src} alt={img.alt} widths={[800, 1200, 1800]} sizes="100vw" loading="lazy" />
-            {img.alt && <figcaption>{img.alt}</figcaption>}
-          </figure>
-        ))}
-      </div>
-    )}
+    <!-- Images plein bord -->
+    <div class="bands">
+      {bands.map((src, i) => (
+        src ? (
+          <div class="band band-img"><Image src={src} alt={`${d.titre} — vue ${i + 1}`} widths={[1000, 1600, 2200]} sizes="100vw" loading="lazy" /></div>
+        ) : (
+          <div class="band band-ph" aria-hidden="true"></div>
+        )
+      ))}
+    </div>
 
     <!-- Précédent / suivant -->
     {(prev || next) && (
@@ -115,7 +129,7 @@ const teinte = teinteFor(entry.id);
         <div class="pn">
           {prev && (
             <a class="plain pn-a" href={L(`/projets/${prev.id}`)}>
-              <Axono i={axIndex(prev)} teinte={teinteFor(prev.id)} class="pn-axo" />
+              <Axono id={prev.id} teinte={teinteFor(prev.id)} class="pn-axo" />
               <span class="pn-txt"><span class="pn-l">← Précédent</span><span class="pn-t">{prev.data.titre}</span></span>
             </a>
           )}
@@ -124,14 +138,113 @@ const teinte = teinteFor(entry.id);
           {next && (
             <a class="plain pn-a" href={L(`/projets/${next.id}`)}>
               <span class="pn-txt"><span class="pn-l">Suivant →</span><span class="pn-t">{next.data.titre}</span></span>
-              <Axono i={axIndex(next)} teinte={teinteFor(next.id)} class="pn-axo" />
+              <Axono id={next.id} teinte={teinteFor(next.id)} class="pn-axo" />
             </a>
           )}
         </div>
       </nav>
     )}
   </article>
+
+  <!-- Carrousel plein écran -->
+  <div class="carousel" id="carousel" hidden role="dialog" aria-modal="true" aria-label={`Images — ${d.titre}`} data-count={shotCount} data-name={d.titre} data-meta={meta}>
+    <div class="car-stage">
+      {slides.map((s, i) => (
+        <div class="slide" data-i={i} data-label={s.label} hidden={i !== 0}>
+          {s.img ? (
+            <Image class="slide-img" src={s.img} alt={`${d.titre} — ${s.label}`} widths={[1200, 1800, 2400]} sizes="100vw" />
+          ) : (
+            <div class="slide-ph" style={`background:repeating-linear-gradient(${s.angle}deg,#E7DFD0 0 22px,#EFE9DE 22px 44px);`}></div>
+          )}
+        </div>
+      ))}
+    </div>
+    <div class="car-veil car-veil-top" aria-hidden="true"></div>
+    <div class="car-veil car-veil-bottom" aria-hidden="true"></div>
+    <button class="car-edge car-prev" type="button" id="car-prev" aria-label="Image précédente">←</button>
+    <button class="car-edge car-next" type="button" id="car-next" aria-label="Image suivante">→</button>
+    <div class="car-bar">
+      <span class="car-count"><span id="car-num">1</span> / {shotCount}</span>
+      <button class="car-close" type="button" id="car-close">Fermer ✕</button>
+    </div>
+    <div class="car-caption">
+      <div class="car-shot"><span id="car-shot">{slides[0]?.label}</span> · {meta}</div>
+      <div class="car-name">{d.titre}</div>
+    </div>
+    <div class="visually-hidden" id="car-live" aria-live="polite"></div>
+  </div>
 </Base>
+
+<script>
+  let carCtl: { isOpen: () => boolean; onKey: (e: KeyboardEvent) => void } | null = null;
+
+  function initCarousel() {
+    const node = document.getElementById('carousel');
+    if (!node || node.dataset.wired === '1') return;
+    node.dataset.wired = '1';
+    const root = node; // non-null, capturé pour les closures
+
+    const slides = Array.from(root.querySelectorAll<HTMLElement>('.slide'));
+    const count = slides.length;
+    const numEl = document.getElementById('car-num');
+    const shotEl = document.getElementById('car-shot');
+    const liveEl = document.getElementById('car-live');
+    const opener = document.getElementById('open-carousel');
+    const closeBtn = document.getElementById('car-close');
+    // arrière-plan rendu inerte pendant l'ouverture (focus + lecteurs d'écran)
+    const bg = ['article', '.site-header', '.site-footer']
+      .map((s) => document.querySelector<HTMLElement>(s))
+      .filter((el): el is HTMLElement => !!el);
+    let cur = 0;
+    let open = false;
+
+    function show(i: number) {
+      cur = ((i % count) + count) % count;
+      slides.forEach((s, k) => { s.hidden = k !== cur; });
+      const label = slides[cur]?.dataset.label || '';
+      if (numEl) numEl.textContent = String(cur + 1);
+      if (shotEl) shotEl.textContent = label;
+      if (liveEl) liveEl.textContent = `Image ${cur + 1} / ${count} — ${label}`;
+    }
+    function openAt(i: number) {
+      open = true; root.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      bg.forEach((el) => { el.inert = true; });
+      requestAnimationFrame(() => root.classList.add('is-on'));
+      show(i);
+      (closeBtn as HTMLElement | null)?.focus();
+    }
+    function close() {
+      open = false; root.classList.remove('is-on');
+      document.documentElement.style.overflow = '';
+      bg.forEach((el) => { el.inert = false; });
+      window.setTimeout(() => { if (!open) root.hidden = true; }, 250);
+      (opener as HTMLElement | null)?.focus();
+    }
+
+    opener?.addEventListener('click', () => openAt(0));
+    document.getElementById('car-next')?.addEventListener('click', () => show(cur + 1));
+    document.getElementById('car-prev')?.addEventListener('click', () => show(cur - 1));
+    document.getElementById('car-close')?.addEventListener('click', close);
+
+    carCtl = {
+      isOpen: () => open,
+      onKey: (e: KeyboardEvent) => {
+        if (!open) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowRight') show(cur + 1);
+        else if (e.key === 'ArrowLeft') show(cur - 1);
+      },
+    };
+  }
+
+  // attaché une seule fois (les scripts de module ne se ré-exécutent pas à la
+  // navigation ClientRouter) ; le contrôleur courant est mis à jour par page.
+  window.addEventListener('keydown', (e) => carCtl?.onKey(e));
+  document.addEventListener('astro:page-load', initCarousel);
+  // libère le verrou de scroll si on quitte la page carrousel ouvert
+  document.addEventListener('astro:before-swap', () => { document.documentElement.style.overflow = ''; });
+</script>
 
 <style>
   article { padding-block: clamp(1.2rem, 3vw, 2rem) clamp(2.5rem, 6vw, 4rem); }
@@ -146,7 +259,13 @@ const teinte = teinteFor(entry.id);
     font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
     color: var(--stone); background: rgba(246, 242, 235, 0.72); padding: 0.3rem 0.6rem; margin: 1rem;
   }
-  .hero { position: relative; margin-top: 1rem; border: var(--rule); overflow: hidden; }
+  /* Hero (bouton plein cadre) */
+  .hero {
+    position: relative; display: block; width: 100%; margin-top: 1rem; padding: 0;
+    border: var(--rule); overflow: hidden; cursor: pointer; text-align: left;
+    transition: opacity 0.2s var(--ease);
+  }
+  .hero:hover { opacity: 0.94; }
   .hero :global(img) { width: 100%; aspect-ratio: 16 / 8; object-fit: cover; display: block; }
   .hero-ph { aspect-ratio: 16 / 8; }
   .voir {
@@ -160,18 +279,18 @@ const teinte = teinteFor(entry.id);
     color: var(--teinte-accent, var(--terracotta)); margin-top: clamp(1.6rem, 4vw, 2.4rem);
   }
   h1 {
-    font-family: var(--font-display); font-weight: 500; font-size: clamp(2.2rem, 5vw, 3.4rem);
-    line-height: 1.05; color: var(--ink); margin-top: 0.5rem;
+    font-family: var(--font-display); font-weight: 600; font-size: clamp(2.2rem, 6.5vw, 5rem);
+    line-height: 1.0; color: var(--ink); margin-top: 0.6rem;
   }
   .loc { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.05em; color: var(--stone); margin-top: 0.7rem; }
 
   .body-grid {
-    display: grid; grid-template-columns: 1fr 18rem; gap: clamp(2rem, 5vw, 4rem);
+    display: grid; grid-template-columns: 1fr 20rem; gap: clamp(2rem, 6vw, 6rem);
     margin-top: clamp(2rem, 5vw, 3rem); align-items: start;
   }
   .lede {
     font-family: var(--font-display); font-style: italic; font-weight: 500;
-    font-size: clamp(1.3rem, 2.4vw, 1.7rem); line-height: 1.3; color: var(--ink); margin-bottom: 1.4rem; max-width: none;
+    font-size: clamp(1.4rem, 2.7vw, 2rem); line-height: 1.38; color: var(--ink); margin-bottom: 1.4rem; max-width: none;
   }
   .body-col .prose { max-width: none; }
 
@@ -186,18 +305,24 @@ const teinte = teinteFor(entry.id);
   .plan-svg { width: 100%; height: 100%; display: block; }
   .compass {
     position: absolute; top: 0.5rem; right: 0.6rem; font-family: var(--font-mono);
-    font-size: 0.6rem; line-height: 1; color: var(--stone); text-align: center;
+    font-size: 0.6rem; line-height: 1; color: var(--stone); text-align: center; z-index: 1;
   }
   .fiche { display: grid; }
   .fiche-row { padding-block: 0.7rem; border-top: var(--rule); }
+  .fiche-row:last-child { border-bottom: var(--rule); }
   .fiche-row dt {
     font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone);
   }
   .fiche-row dd { font-family: var(--font-body); font-size: 0.95rem; color: var(--ink); margin-top: 0.25rem; }
 
-  .galerie { display: grid; gap: clamp(1rem, 2vw, 1.5rem); margin-top: clamp(2.5rem, 6vw, 4rem); }
-  .galerie :global(img) { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: var(--rule); display: block; }
-  .galerie figcaption { font-family: var(--font-mono); font-size: 0.66rem; color: var(--stone); margin-top: 0.5rem; }
+  /* Images plein bord (sortent du conteneur) */
+  .bands {
+    margin: clamp(2.5rem, 6vw, 5rem) calc(50% - 50vw) 0;
+    display: flex; flex-direction: column; gap: clamp(8px, 1.4vw, 18px);
+  }
+  .band { width: 100%; }
+  .band-ph { height: clamp(360px, 60vw, 820px); background: repeating-linear-gradient(135deg, var(--ph1) 0 16px, var(--surface) 16px 32px); }
+  .band-img :global(img) { width: 100%; height: clamp(360px, 60vw, 820px); object-fit: cover; display: block; }
 
   .prevnext {
     display: flex; justify-content: space-between; gap: var(--space-l);
@@ -211,7 +336,42 @@ const teinte = teinteFor(entry.id);
   .pn-l { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stone); }
   .pn-t { font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; color: var(--ink); transition: color 0.2s var(--ease); margin-top: 0.2rem; }
   .pn-a:hover .pn-t { color: var(--terracotta-deep); }
-  .pn-a :global(.pn-axo) { width: 70px; flex: none; }
+  .pn-a :global(.pn-axo) { width: 74px; flex: none; }
+
+  /* — Carrousel plein écran — */
+  .carousel { position: fixed; inset: 0; z-index: 90; background: #15120F; overflow: hidden; opacity: 0; transition: opacity 0.25s var(--ease); }
+  .carousel.is-on { opacity: 1; }
+  .carousel[hidden] { display: none; }
+  .car-stage { position: absolute; inset: 0; }
+  .slide { position: absolute; inset: 0; }
+  .slide[hidden] { display: none; }
+  .slide-ph { position: absolute; inset: 0; }
+  .slide :global(.slide-img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .car-veil { position: absolute; left: 0; right: 0; pointer-events: none; }
+  .car-veil-top { top: 0; height: 140px; background: linear-gradient(180deg, rgba(20,18,15,.5), rgba(20,18,15,0)); }
+  .car-veil-bottom { bottom: 0; height: 220px; background: linear-gradient(0deg, rgba(20,18,15,.62), rgba(20,18,15,0)); }
+  .car-edge {
+    position: absolute; top: 0; bottom: 0; width: 34%; display: flex; align-items: center;
+    color: transparent; font-size: 38px; cursor: pointer; transition: color 0.15s var(--ease); background: none; z-index: 2;
+  }
+  .car-prev { left: 0; justify-content: flex-start; padding-left: clamp(16px, 3vw, 40px); }
+  .car-next { right: 0; justify-content: flex-end; padding-right: clamp(16px, 3vw, 40px); }
+  .car-edge:hover, .car-edge:focus-visible { color: var(--paper); }
+  .car-edge:focus-visible { outline: 2px solid var(--paper); outline-offset: -6px; }
+  .car-bar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: clamp(16px, 3vw, 26px) clamp(20px, 5vw, 48px); color: var(--paper);
+  }
+  .car-count { font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.08em; }
+  .car-close {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--paper); cursor: pointer; background: none;
+  }
+  .car-close:hover { color: #fff; }
+  .car-caption { position: absolute; left: clamp(20px, 5vw, 48px); bottom: clamp(22px, 4vw, 40px); color: var(--paper); pointer-events: none; max-width: 82%; z-index: 3; }
+  .car-shot { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(246,242,235,.82); }
+  .car-name { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 5vw, 58px); line-height: 1.04; margin-top: 6px; }
 
   @media (max-width: 52rem) {
     .body-grid { grid-template-columns: 1fr; gap: 2rem; }

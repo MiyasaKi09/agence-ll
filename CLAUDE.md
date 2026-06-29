@@ -87,11 +87,16 @@ agence-ll/
 │   ├── content/
 │   │   └── projets/<slug>/index.mdx   ← un dossier par projet (+ ses images)
 │   ├── layouts/
-│   │   └── Base.astro        ← <head>, meta/OG, polices, header + footer
+│   │   └── Base.astro        ← <head>, meta/OG, polices, <ClientRouter/>, header + footer
+│   ├── lib/
+│   │   ├── axono.ts          ← générateur d'axonométrie (massing → SVG) — §14
+│   │   ├── projets-data.ts   ← catégorie/dept/massing par projet + palettes + carte IDF — §14
+│   │   └── teinte.ts         ← teinte par catégorie (page + axonométrie) — §14
 │   ├── components/
-│   │   ├── Header.astro
+│   │   ├── Header.astro      ← nav desktop + menu mobile
 │   │   ├── Footer.astro
-│   │   ├── Monogram.astro    ← sceau pieuvre + lettre-marque (INTÉGRÉ ✓ — vrai SVG, 3 variantes)
+│   │   ├── Axono.astro       ← axonométrie générée par projet (prend `id` ou `spec`)
+│   │   ├── Monogram.astro    ← sceau pieuvre (dispo ; non utilisé par le design validé)
 │   │   └── ProjectCard.astro
 │   ├── pages/
 │   │   ├── index.astro       ← accueil (la « thèse »)
@@ -139,14 +144,14 @@ là — n'invente pas de valeurs en dur.**
 - `--moss #3E4A36` (vert sombre — biodiversité, **accent rare et précieux**)
 - `--stone`, `--stone-light` (gris chauds — légendes, filets)
 
-**Typographie**
-- **Display : Fraunces** (serif variable) — titres, manifeste. Garder le contraste
-  sous contrôle (registre architectural, pas « magazine de mode »).
+**Typographie** *(alignée sur le design Claude « Site Agence L&L » — cf. `tokens.css`)*
+- **Display : Cormorant Garamond** (serif éditorial) — titres, manifeste, noms de
+  projet. Registre architectural, contraste maîtrisé.
 - **Corps : Hanken Grotesk** — texte courant (grotesque chaud, moins « par défaut »
   qu'Inter).
-- **Mono : JetBrains Mono** — métadonnées : codes projet, années, surfaces, lieux.
-- **Script : Caveat** — numéros de projet **manuscrits en rouge** (placeholder de la
-  **vraie main de Julien**, à scanner et substituer plus tard).
+- **Mono : IBM Plex Mono** — métadonnées : codes projet, années, surfaces, lieux, labels.
+- *(Plus de script « manuscrit » : le design retenu n'a pas de numéros à la main ;
+  `--font-script` est un alias de Cormorant, conservé pour compatibilité.)*
 
 **Signature — l'élément qu'on retient.** Le **sceau-pieuvre L&L** (linogravure :
 tentacules, systèmes vivants — référence personnelle de Julien) est **intégré et
@@ -162,11 +167,20 @@ arrêtée** — rendu cible dans `design/accueil-prototype.html`.
 broadsheet dense). Photographie en **pleine largeur** par endroits, laissée
 respirer.
 
-**Mouvement — léger (DÉCISION arrêtée).** Le **sceau se pose** une fois au chargement,
-**hover discret** sur les cartes/liens, c'est tout. **Pas de WebGL/3D, pas de
-parallaxe, pas de scroll-jacking** — on garde la perf et la sobriété. Les révélations
-au scroll restent **facultatives et minimales**, seulement si vraiment utiles.
-`prefers-reduced-motion` est respecté dans `global.css` — garde-le.
+**Mouvement — couche immersive (DÉCISION révisée 29/06/2026).** Le design Claude validé
+**assume des effets immersifs**, reproduits fidèlement (voir §14) :
+- **Survol immersif** de la grille projets (atténuation des voisins + nom géant plein écran) ;
+- **Recoloration de page par catégorie** de projet, avec **transition douce entre pages**
+  via les **View Transitions** d'Astro (`<ClientRouter/>`) — navigation type SPA ;
+- **Carrousel plein écran** (clavier + flèches au survol des bords) ;
+- **Carte Île-de-France interactive** (filtre par département) ;
+- **Axonométries générées** par projet (massing → SVG, teintées par catégorie).
+
+Toujours **pas de WebGL/3D, pas de parallaxe, pas de scroll-jacking** : tout est en
+CSS + petites îles JS, perf préservée. `prefers-reduced-motion` est respecté
+(`global.css` neutralise les transitions ; ClientRouter désactive ses animations) et
+le survol immersif est **gardé derrière `(hover: hover)`** (pas sur tactile). **Garde
+ces garde-fous.**
 
 **Plancher de qualité (non négociable) :** responsive jusqu'au mobile, focus
 clavier visible (`:focus-visible`), contrastes AA, `alt` sur toutes les images,
@@ -333,23 +347,64 @@ groupe **« Textes du site »** (singletons `accueil`/`agence`/`contact` →
    `getStaticPaths` partagés via `src/lib/paths.ts`) et le **sélecteur FR·EN est
    actif** (`readyLocales = ['fr','en']`). Pour ajouter une langue : créer ses
    pages `/xx/` + l'ajouter au dictionnaire `src/i18n/ui.ts` et à `readyLocales`.
-3. **« Moment statement » → LÉGER.** On garde la **signature sceau/gravure** : le sceau
-   se pose au chargement, hover discret. **Pas de 3D/WebGL/parallaxe** pour le moment
-   (perf + sobriété). Rediscutable plus tard si l'on veut un geste plus spectaculaire.
+3. **« Moment statement » → IMMERSIF (révisé 29/06/2026).** On reproduit **à la
+   perfection** le design Claude « Site Agence L&L » et **ses effets immersifs**
+   (survol plein écran, recoloration par catégorie + transitions de vue, carrousel,
+   carte interactive, axonométries générées). Voir §14. **Toujours pas de
+   3D/WebGL/parallaxe** : CSS + petites îles JS, perf + a11y préservées.
 
 ---
 
 ## 13. À NE PAS faire
 
 - ❌ Laisser le site **collapser vers le look IA « crème + serif + terracotta »**.
-  La singularité passe par le **sceau/gravure**, les **numéros manuscrits**,
-  l'**asymétrie** et la **photo de matière**.
+  La singularité passe par les **axonométries dessinées** (générées par projet),
+  la **recoloration par catégorie**, le **survol immersif**, la **grille éditoriale
+  asymétrique**, les **métadonnées en monospace** et la **photo de matière**.
+  *(NB : le design Claude validé n'utilise PAS le sceau-pieuvre ; `Monogram.astro`
+  reste dispo mais le header/footer portent le mot-marque « Agence L&L ».)*
 - ❌ Ajouter **Supabase / une base** pour du contenu statique.
 - ❌ Mettre **Tailwind** : on tient un système de tokens à la main (choix assumé).
 - ❌ **`<img>`** pour le contenu : toujours `<Image>` (`astro:assets`).
-- ❌ Multiplier les **animations** : sobriété (ça « sent l'IA » sinon).
+- ❌ Multiplier les animations **gratuites** : les effets immersifs (§14) sont
+  **délibérés et tirés du prototype validé** ; n'en ajoute pas d'autres sans raison,
+  et garde `prefers-reduced-motion` + le garde-fou `(hover: hover)`.
 - ❌ Mettre une **clé API / un secret en dur** (variables d'environnement).
 - ❌ Oublier le **plancher d'accessibilité** (focus visible, alt, contrastes, mobile).
 - ❌ Redessiner le sceau ailleurs / le coder en dur — **utilise `Monogram.astro`**.
-- ❌ S'écarter de la **maquette validée** (`design/accueil-prototype.html`) sans raison.
-```
+- ❌ S'écarter du **design Claude validé** (`design/Site_Agence_LL` — prototype de
+  référence reproduit en §14) sans raison.
+
+---
+
+## 14. Couche immersive — reproduction du design Claude (29/06/2026)
+
+Le prototype Claude « Site Agence L&L » (SPA) a été **reproduit nativement** dans
+l'architecture Astro multi-pages. Effets et où ils vivent :
+
+| Effet | Implémentation |
+|---|---|
+| **Axonométries générées** par projet (massing → SVG, faces L/R, toit, étages, volume accent) | `src/lib/axono.ts` (`axoSvg`) + `src/components/Axono.astro` (prend `id` ou `spec`) |
+| **Catégorie + département + massing** par projet | `src/lib/projets-data.ts` (`PROJETS_META`, `catFromText`, `deptFromLieu`) |
+| **Palettes par catégorie** (renovation/logements/equipements/neuf + défaut) | `projets-data.ts` (`CAT_THEMES`, `themeForCat`) → `src/lib/teinte.ts` |
+| **Recoloration de page** (fond + nav + footer + accent) sur la fiche projet | `teintePageVars()` sur `<body style>` (Base) ; `--paper/--nav-bg/--footer-bg` |
+| **Transition de thème entre pages** (effet « la page se recolore ») | **View Transitions** `<ClientRouter/>` (Base) + `transition` sur body/header/footer + `::view-transition-*(root)` 0.5s dans `global.css` |
+| **Survol immersif** (atténue les voisins + nom géant plein écran) | `src/pages/projets/index.astro` (overlay `#proj-overlay` + script, **gardé `(hover:hover)` + reduced-motion**) |
+| **Carte Île-de-France interactive** (filtre par département) | `projets-data.ts` (`IDF_BLOB`, `DEPT_POS`, `DEPT_NAMES`) + SVG/JS dans `projets/index.astro` |
+| **Filtres** catégorie + département + **tri** récent/ancien + reset lieu | script de `projets/index.astro` (état `{cat,dept,sort}`, `style.order` + `display`) |
+| **Carrousel plein écran** (compteur, fermer, flèches au survol des bords, clavier Esc/←/→, verrou scroll) | `src/pages/projets/[id].astro` (overlay `#carousel` + script) |
+| **Menu mobile** (bouton « Menu » → panneau) | `src/components/Header.astro` |
+
+**Gotchas à respecter (sinon ça casse après navigation ClientRouter) :**
+- Tout script d'île s'initialise sur **`astro:page-load`** (pas au simple chargement) —
+  les modules ne se ré-exécutent pas à la navigation. Garde anti-double-init via
+  `dataset.wired`.
+- Les listeners **window** (clavier du carrousel) sont attachés **une seule fois** au
+  scope module ; le contrôleur courant est mis à jour par page.
+- Le verrou de scroll du carrousel est libéré sur fermeture **et** sur
+  `astro:before-swap`.
+- Les pages `/en/*` **réutilisent les composants FR** : les scripts et `localizePath`
+  fonctionnent tels quels.
+
+Mettre à jour un projet : son massing/catégorie/département vivent dans
+`PROJETS_META` (`projets-data.ts`), clé = identifiant de la collection (dossier).

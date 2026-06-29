@@ -22,7 +22,7 @@ const isActive = (href: string) => {
       Agence&nbsp;L<span class="amp">&amp;</span>L
     </a>
 
-    <nav aria-label="Navigation principale">
+    <nav class="desk-nav" aria-label="Navigation principale">
       <ul>
         {nav.map((item) => (
           <li>
@@ -37,8 +37,36 @@ const isActive = (href: string) => {
     </nav>
 
     <a href={localizePath('/contact', locale)} class="rdv plain">Prendre rendez-vous</a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav">Menu</button>
   </div>
+
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Navigation principale (mobile)" hidden>
+    {nav.map((item) => (
+      <a
+        href={localizePath(item.href, locale)}
+        class="mnav-link plain"
+        aria-current={isActive(item.href) ? 'page' : undefined}
+      >{t(item.key)}</a>
+    ))}
+    <a href={localizePath('/contact', locale)} class="mnav-rdv plain">Prendre rendez-vous</a>
+  </nav>
 </header>
+
+<script>
+  function initHeaderMenu() {
+    const btn = document.querySelector<HTMLButtonElement>('.menu-toggle');
+    const panel = document.getElementById('mobile-nav');
+    if (!btn || !panel || btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      panel.hidden = open;
+    });
+  }
+  document.addEventListener('astro:page-load', initHeaderMenu);
+</script>
 
 <style>
   /* « Liquid glass » léger : verre dépoli translucide qui suit la teinte de la page,
@@ -80,8 +108,8 @@ const isActive = (href: string) => {
   }
 
   /* Navigation centrale — Hanken Grotesk 14px MAJ (comme le design) */
-  nav { justify-self: center; }
-  nav ul {
+  .desk-nav { justify-self: center; }
+  .desk-nav ul {
     display: flex;
     gap: clamp(1.4rem, 3vw, 2.5rem);
     list-style: none;
@@ -119,12 +147,56 @@ const isActive = (href: string) => {
   }
   .rdv:hover { background: var(--ink); color: var(--paper); }
 
-  /* Responsive : on replie la nav et le bouton sous le mot-marque */
+  /* Bouton « Menu » (mobile uniquement) */
+  .menu-toggle {
+    display: none;
+    justify-self: end;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 8px 12px;
+    background: none;
+  }
+
+  /* Panneau de navigation mobile (replié par défaut) */
+  .mobile-nav {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px clamp(1.25rem, 5vw, 4rem) 18px;
+  }
+  .mobile-nav[hidden] { display: none; }
+  .mnav-link, .mnav-rdv {
+    font-family: var(--font-body);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 11px 0;
+    border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+  .mnav-link[aria-current='page'] { color: var(--terracotta); }
+  .mnav-rdv {
+    margin-top: 10px;
+    text-align: center;
+    border: 1px solid var(--ink);
+    padding: 11px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+
+  /* Responsive : on replie la nav desktop, on montre le bouton Menu */
   @media (max-width: 60rem) {
     .bar { grid-template-columns: 1fr auto; }
-    nav { display: none; }
+    .desk-nav, .rdv { display: none; }
+    .menu-toggle { display: inline-block; }
+    .mobile-nav:not([hidden]) { display: flex; }
   }
-  @media (max-width: 30rem) {
-    .rdv { font-size: 0.62rem; padding: 0.5rem 0.7rem; }
+  @media (min-width: 60.0625rem) {
+    .mobile-nav { display: none !important; }
   }
 </style>
