@@ -22,7 +22,6 @@ const L = (p: string) => localizePath(p, locale);
 const lecture = d.tempsLecture ?? tempsLecture(d.extrait);
 const canonical = new URL(L(`/journal/${entry.id}`), Astro.site ?? Astro.url).toString();
 const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}`;
-const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
 ---
 <Base title={`${d.titre} — Journal — Agence L&L`} description={d.extrait}>
   <article class="container">
@@ -58,7 +57,7 @@ const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
 
       {projetLie && (
         <a class="projet-lie plain" href={L(`/projets/${projetLie.id}`)}>
-          <Axono i={hash(projetLie.id)} teinte={teinteFor(projetLie.id)} class="pl-axo" />
+          <Axono id={projetLie.id} teinte={teinteFor(projetLie.id)} class="pl-axo" />
           <span class="pl-body">
             <span class="pl-label">{t('article.related')}</span>
             <span class="pl-titre">{projetLie.titre}</span>
@@ -103,25 +102,32 @@ const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
 </Base>
 
 <script>
-  const btn = document.getElementById('copy-link');
-  const toast = document.getElementById('toast');
+  // Initialisé sur astro:page-load pour survivre aux navigations ClientRouter
+  // (sinon « Copier le lien » serait mort sur un article atteint en interne).
   let timer: number | undefined;
-  btn?.addEventListener('click', async () => {
-    const url = btn.getAttribute('data-url') || location.href;
-    try { await navigator.clipboard.writeText(url); }
-    catch {
-      const ta = document.createElement('textarea');
-      ta.value = url; document.body.appendChild(ta); ta.select();
-      (document as unknown as { execCommand: (c: string) => void }).execCommand('copy');
-      ta.remove();
-    }
-    if (toast) {
-      toast.hidden = false;
-      requestAnimationFrame(() => toast.classList.add('is-on'));
-      clearTimeout(timer);
-      timer = window.setTimeout(() => { toast.classList.remove('is-on'); window.setTimeout(() => { toast.hidden = true; }, 250); }, 1800);
-    }
-  });
+  function initCopyLink() {
+    const btn = document.getElementById('copy-link');
+    const toast = document.getElementById('toast');
+    if (!btn || btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', async () => {
+      const url = btn.getAttribute('data-url') || location.href;
+      try { await navigator.clipboard.writeText(url); }
+      catch {
+        const ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta); ta.select();
+        (document as unknown as { execCommand: (c: string) => void }).execCommand('copy');
+        ta.remove();
+      }
+      if (toast) {
+        toast.hidden = false;
+        requestAnimationFrame(() => toast.classList.add('is-on'));
+        clearTimeout(timer);
+        timer = window.setTimeout(() => { toast.classList.remove('is-on'); window.setTimeout(() => { toast.hidden = true; }, 250); }, 1800);
+      }
+    });
+  }
+  document.addEventListener('astro:page-load', initCopyLink);
 </script>
 
 <style>

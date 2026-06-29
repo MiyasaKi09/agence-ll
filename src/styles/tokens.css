@@ -21,6 +21,14 @@
   --seal:            #B86B4B; /* (compat) — même accent que la terre cuite */
   --moss:            #5A5349; /* (compat) — neutralisé en gris chaud */
 
+  /* Fond du bandeau de nav (verre dépoli) et du footer — recolorés par
+     teintePageVars() sur la fiche projet, avec transition douce (cf. Base). */
+  --nav-bg:          rgba(246, 242, 235, 0.82);
+  --footer-bg:       #1A1714;
+  /* placeholders tramés (axonométries, vignettes) — suivent la teinte */
+  --ph1:             #E7DFD0;
+  --ph2:             #D8CCB7;
+
   /* — TYPOGRAPHIE ————————————————————————————————————————————————
      Display : Cormorant Garamond (serif éditorial — titres, mots-marque)
      Body    : Hanken Grotesk (grotesque chaud — texte courant)

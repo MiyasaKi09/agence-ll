@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { getLocale, useTranslations, alternatePath, isLocaleReady } from '../i18n/utils';
@@ -39,7 +40,12 @@ const hrefEn = new URL(alternatePath(Astro.url.pathname, 'en'), base).toString()
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <meta name="theme-color" content="#EEEAE1" />
+    <meta name="theme-color" content="#F6F2EB" />
+
+    <!-- Navigation type SPA + transitions de vue douces entre pages
+         (fondu enchaîné qui anime aussi la recoloration de page selon la
+         catégorie du projet). Dégrade proprement, désactivé si reduced-motion. -->
+    <ClientRouter />
 
     <!-- Alternances de langue (FR/EN) — EN annoncé seulement quand les pages existent -->
     <link rel="alternate" hreflang="fr" href={hrefFr} />

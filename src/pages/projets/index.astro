@@ -3,24 +3,32 @@ import Base from '../../layouts/Base.astro';
 import Axono from '../../components/Axono.astro';
 import { getCollection } from 'astro:content';
 import { teinteFor } from '../../lib/teinte';
+import { metaFor, DEPT_POS, DEPT_NAMES, IDF_BLOB, type Cat } from '../../lib/projets-data';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 
 const locale = getLocale(Astro.url);
 const t = useTranslations(locale);
 const L = (p: string) => localizePath(p, locale);
 
-const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
+const projetsRaw = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
 
-// Catégorie pour les filtres (déduite du programme / des tags)
-function cat(p: typeof projets[number]): string {
-  const s = `${p.data.programme} ${p.data.tags.join(' ')}`.toLowerCase();
-  if (s.includes('logement')) return 'logements';
-  if (s.includes('équipement') || s.includes('equipement') || s.includes('école') || s.includes('ecole') || s.includes('médiathèque') || s.includes('mediatheque')) return 'equipements';
-  if (s.includes('rénovation') || s.includes('renovation') || s.includes('réhab') || s.includes('rehab')) return 'renovation';
-  return 'neuf';
-}
-const filters = [
+// Enrichit chaque projet de sa catégorie + département (cf. projets-data.ts)
+const projets = projetsRaw.map((p) => {
+  const m = metaFor(p.id, { programme: p.data.programme, tags: p.data.tags, lieu: p.data.lieu });
+  return {
+    id: p.id,
+    titre: p.data.titre,
+    programme: p.data.programme,
+    lieu: p.data.lieu,
+    annee: p.data.annee,
+    cat: m.cat,
+    dept: m.dept,
+    href: L(`/projets/${p.id}`),
+  };
+});
+
+const filters: { key: 'tous' | Cat; label: string }[] = [
   { key: 'tous', label: 'Tous' },
   { key: 'logements', label: 'Logements' },
   { key: 'equipements', label: 'Équipements' },
@@ -28,39 +36,50 @@ const filters = [
   { key: 'neuf', label: 'Neuf' },
 ];
 
-// Pins de la carte — positions à l'intérieur du blob Île-de-France (du design)
-const PINS = [
-  [150, 118], [188, 90], [132, 196], [210, 150],
-  [100, 140], [170, 168], [120, 92], [205, 118],
-];
+// Compte des projets par département pour la carte (tous projets confondus,
+// comme le prototype) ; on ne place une pastille que pour les depts cartographiés.
+const deptCounts: Record<string, number> = {};
+for (const p of projets) if (p.dept) deptCounts[p.dept] = (deptCounts[p.dept] ?? 0) + 1;
+const mapDepts = Object.keys(DEPT_POS)
+  .filter((d) => deptCounts[d] > 0)
+  .map((d) => ({ code: d, name: DEPT_NAMES[d] ?? d, count: deptCounts[d], ...DEPT_POS[d] }));
 ---
 <Base
   title="Projets — Agence L&L"
   description="Réalisations et études de l'Agence L&L : rénovation énergétique, logement, équipements publics, entre Paris et la Normandie."
 >
-  <section class="section container">
+  <!-- Survol immersif : voile plein écran derrière la grille -->
+  <div class="proj-overlay" id="proj-overlay" aria-hidden="true">
+    <div class="ov-inner">
+      <div class="ov-meta" id="ov-meta"></div>
+      <div class="ov-name" id="ov-name"></div>
+    </div>
+  </div>
+
+  <section class="section container proj-section" id="proj-section">
     <div class="proj-head">
       <div class="filters-wrap">
-        <div class="filters" role="tablist" aria-label="Filtrer les projets">
+        <div class="filters" role="group" aria-label="Filtrer par catégorie">
           {filters.map((f) => (
             <button class="chip-link" data-filter={f.key} aria-pressed={f.key === 'tous' ? 'true' : 'false'}>{f.label}</button>
           ))}
         </div>
         <div class="sort-row">
-          <span class="sort">Trier : plus récents ↓</span>
-          <span class="zone">Toute l’Île-de-France</span>
+          <button class="sort" id="sort-toggle" type="button" data-sort="recent">Trier : plus récents ↓</button>
+          <button class="zone" id="loc-reset" type="button" data-active="false" disabled>Toute l’Île-de-France</button>
         </div>
       </div>
 
-      <div class="map-wrap" aria-hidden="true">
+      <div class="map-wrap">
         <span class="map-label">Carte des projets</span>
-        <svg class="map" viewBox="0 0 300 240" role="img" preserveAspectRatio="xMidYMid meet">
-          <path d="M86,54 C120,36 168,40 196,58 C232,52 264,82 262,120 C266,160 240,196 198,202 C158,214 116,212 92,192 C60,200 34,176 42,140 C36,108 58,74 86,54 Z"
-                fill="var(--paper-deep)" stroke="rgba(26,23,20,.16)" stroke-width="1" />
-          {projets.slice(0, PINS.length).map((_, i) => (
-            <g>
-              <circle cx={PINS[i][0]} cy={PINS[i][1]} r="7" fill="var(--ink)" />
-              <text x={PINS[i][0]} y={PINS[i][1] + 3} text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="8" font-weight="600" fill="var(--paper)">{i + 1}</text>
+        <svg class="map" viewBox="0 0 300 240" role="group" aria-label="Carte des projets par département" preserveAspectRatio="xMidYMid meet">
+          <path d={IDF_BLOB} fill="var(--paper-deep)" stroke="rgba(26,23,20,.16)" stroke-width="1" />
+          {mapDepts.map((d) => (
+            <g class="dept" data-dept={d.code} role="button" tabindex="0"
+               aria-label={`${d.name} — ${d.count} projet${d.count > 1 ? 's' : ''}`} aria-pressed="false">
+              <circle class="dept-hit" cx={d.x} cy={d.y} r="16" fill="transparent" />
+              <circle class="dept-dot" cx={d.x} cy={d.y} r="7" />
+              <text class="dept-num" x={d.x} y={d.y + 3} text-anchor="middle">{d.count}</text>
             </g>
           ))}
         </svg>
@@ -68,11 +87,19 @@ const PINS = [
     </div>
 
     {projets.length > 0 ? (
-      <div class="proj-grid">
-        {projets.map((p, i) => (
-          <a class="pcard plain" href={L(`/projets/${p.id}`)} data-cat={cat(p)}>
-            <Axono i={i} teinte={teinteFor(p.id)} class="pcard-axo" />
-            <h2 class="pcard-titre">{p.data.titre}</h2>
+      <div class="proj-grid" id="proj-grid">
+        {projets.map((p) => (
+          <a
+            class="pcard plain"
+            href={p.href}
+            data-cat={p.cat}
+            data-dept={p.dept}
+            data-year={p.annee}
+            data-titre={p.titre}
+            data-meta={`${p.programme} · ${p.lieu} · ${p.annee}`}
+          >
+            <Axono id={p.id} teinte={teinteFor(p.id)} class="pcard-axo" />
+            <h2 class="pcard-titre">{p.titre}</h2>
           </a>
         ))}
       </div>
@@ -83,20 +110,116 @@ const PINS = [
 </Base>
 
 <script>
-  const chips = document.querySelectorAll<HTMLButtonElement>('.chip-link');
-  const cards = document.querySelectorAll<HTMLElement>('.pcard');
-  chips.forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const f = chip.dataset.filter;
-      chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
-      cards.forEach((card) => {
-        card.style.display = f === 'tous' || card.dataset.cat === f ? '' : 'none';
+  function initProjets() {
+    const grid = document.getElementById('proj-grid');
+    if (!grid || grid.dataset.wired === '1') return;
+    grid.dataset.wired = '1';
+
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('.pcard'));
+    const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip-link'));
+    const depts = Array.from(document.querySelectorAll<SVGGElement>('.dept'));
+    const sortBtn = document.getElementById('sort-toggle') as HTMLButtonElement | null;
+    const locBtn = document.getElementById('loc-reset') as HTMLButtonElement | null;
+    const overlay = document.getElementById('proj-overlay');
+    const ovName = document.getElementById('ov-name');
+    const ovMeta = document.getElementById('ov-meta');
+
+    const deptName: Record<string, string> = {};
+    depts.forEach((g) => {
+      const code = g.dataset.dept || '';
+      const m = g.getAttribute('aria-label')?.split(' — ')[0] || code;
+      deptName[code] = m;
+    });
+
+    const state = { cat: 'tous', dept: 'tous', sort: 'recent' };
+
+    function apply() {
+      const visible = cards.filter(
+        (c) =>
+          (state.cat === 'tous' || c.dataset.cat === state.cat) &&
+          (state.dept === 'tous' || c.dataset.dept === state.dept),
+      );
+      visible.sort((a, b) => {
+        const ya = Number(a.dataset.year || 0), yb = Number(b.dataset.year || 0);
+        return state.sort === 'ancien' ? ya - yb : yb - ya;
+      });
+      cards.forEach((c) => { c.style.display = 'none'; c.style.order = '999'; });
+      visible.forEach((c, i) => { c.style.display = ''; c.style.order = String(i); });
+    }
+
+    // — Catégories —
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        state.cat = chip.dataset.filter || 'tous';
+        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        apply();
       });
     });
-  });
+
+    // — Carte / départements —
+    function setDept(code: string) {
+      state.dept = state.dept === code ? 'tous' : code;
+      depts.forEach((g) =>
+        g.setAttribute('aria-pressed', String(g.dataset.dept === state.dept)),
+      );
+      if (locBtn) {
+        const active = state.dept !== 'tous';
+        locBtn.dataset.active = String(active);
+        locBtn.disabled = !active;
+        locBtn.textContent = active
+          ? `Lieu : ${deptName[state.dept] || state.dept}   ✕`
+          : 'Toute l’Île-de-France';
+      }
+      apply();
+    }
+    depts.forEach((g) => {
+      const code = g.dataset.dept || '';
+      g.addEventListener('click', () => setDept(code));
+      g.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDept(code); }
+      });
+    });
+    locBtn?.addEventListener('click', () => { if (state.dept !== 'tous') setDept(state.dept); });
+
+    // — Tri —
+    sortBtn?.addEventListener('click', () => {
+      state.sort = state.sort === 'ancien' ? 'recent' : 'ancien';
+      sortBtn.dataset.sort = state.sort;
+      sortBtn.textContent = state.sort === 'ancien' ? 'Trier : plus anciens ↑' : 'Trier : plus récents ↓';
+      apply();
+    });
+
+    // — Survol immersif (uniquement appareils à survol, hors reduced-motion) —
+    const immersive =
+      window.matchMedia('(hover: hover)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (immersive && overlay && ovName && ovMeta) {
+      cards.forEach((card) => {
+        card.addEventListener('mouseenter', () => {
+          ovName.textContent = card.dataset.titre || '';
+          ovMeta.textContent = card.dataset.meta || '';
+          overlay.classList.add('is-on');
+          grid.classList.add('is-hovering');
+          card.setAttribute('data-hovered', '');
+        });
+        card.addEventListener('mouseleave', () => {
+          overlay.classList.remove('is-on');
+          grid.classList.remove('is-hovering');
+          card.removeAttribute('data-hovered');
+        });
+      });
+    }
+
+    apply();
+  }
+
+  document.addEventListener('astro:page-load', initProjets);
 </script>
 
 <style>
+  /* La section flotte au-dessus du voile immersif */
+  .proj-section { position: relative; z-index: 1; }
+
   .proj-head {
     display: flex; justify-content: space-between; align-items: flex-start;
     gap: var(--space-l); margin-bottom: clamp(2.5rem, 6vw, 4rem); flex-wrap: wrap;
@@ -111,31 +234,67 @@ const PINS = [
   .chip-link:hover { color: var(--ink); }
   .chip-link[aria-pressed='true'] { color: var(--ink); border-color: var(--ink); }
   .sort-row {
-    display: flex; gap: 2.2rem; margin-top: 1rem;
+    display: flex; gap: 2.2rem; margin-top: 1rem; flex-wrap: wrap;
     font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; color: var(--stone);
   }
   .sort-row .sort { color: var(--ink-soft); }
+  .sort-row .sort:hover { color: var(--ink); }
+  .sort-row .zone[data-active='true'] { color: var(--terracotta); }
+  .sort-row .zone:disabled { color: var(--stone); cursor: default; }
 
   .map-wrap { text-align: right; }
   .map-label {
     font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--stone);
   }
-  .map { width: clamp(180px, 18vw, 240px); height: auto; margin-top: 0.5rem; display: block; margin-left: auto; }
+  .map { width: clamp(190px, 22vw, 260px); height: auto; margin-top: 0.5rem; display: block; margin-left: auto; overflow: visible; }
+  .dept { cursor: pointer; }
+  .dept-dot { fill: var(--ink); r: 7; transition: r 0.15s var(--ease), fill 0.15s var(--ease); }
+  .dept-num {
+    font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--paper);
+    pointer-events: none;
+  }
+  .dept:hover .dept-dot { fill: var(--terracotta); }
+  .dept[aria-pressed='true'] .dept-dot { fill: var(--terracotta); r: 9; }
+  .dept:focus-visible { outline: none; }
+  .dept:focus-visible .dept-dot { stroke: var(--ink); stroke-width: 2; }
 
-  /* Grille — valeurs exactes du design : 3 colonnes, gap 68px / 48px */
+  /* Grille — valeurs du design : 3 colonnes, gap 68px / 48px */
   .proj-grid {
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 68px 48px;
   }
-  .pcard { display: block; text-align: center; }
+  .pcard { display: block; text-align: center; transition: opacity 0.3s var(--ease); }
   .pcard :global(.pcard-axo) { margin-bottom: 1rem; }
   .pcard:hover :global(.axono) { transform: translateY(-5px); }
   .pcard-titre {
-    font-family: var(--font-display); font-weight: 500; font-size: 25px; line-height: 1.1;
+    font-family: var(--font-display); font-weight: 700; font-size: 25px; line-height: 1.1;
     color: var(--ink); transition: color 0.2s var(--ease);
   }
   .pcard:hover .pcard-titre { color: var(--terracotta-deep); }
+
+  /* Voile immersif plein écran (caché tant qu'on ne survole pas) */
+  .proj-overlay {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    display: flex; align-items: flex-end; padding: clamp(24px, 5vw, 64px);
+    background: repeating-linear-gradient(135deg, #E3DAC9 0 18px, #ECE4D6 18px 36px);
+    opacity: 0; transition: opacity 0.3s var(--ease);
+  }
+  .proj-overlay.is-on { opacity: 1; }
+  .ov-inner { max-width: 920px; }
+  .ov-meta {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: #6a5d4c;
+  }
+  .ov-name {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: clamp(40px, 8vw, 96px); line-height: 1; color: var(--ink); margin-top: 8px;
+  }
+
+  /* Atténuation des voisins pendant le survol (appareils à survol seulement) */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .proj-grid.is-hovering .pcard:not([data-hovered]) { opacity: 0.25; }
+  }
 
   @media (max-width: 60rem) {
     .proj-grid { grid-template-columns: repeat(2, 1fr); gap: 48px 36px; }
