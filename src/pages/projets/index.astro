@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Axono from '../../components/Axono.astro';
 import { getCollection } from 'astro:content';
+import { teinteFor } from '../../lib/teinte';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 
 const locale = getLocale(Astro.url);
@@ -70,7 +71,7 @@ const pinPos = [
       <div class="proj-grid">
         {projets.map((p, i) => (
           <a class="pcard plain" href={L(`/projets/${p.id}`)} data-cat={cat(p)}>
-            <Axono i={i} class="pcard-axo" />
+            <Axono i={i} teinte={teinteFor(p.id)} class="pcard-axo" />
             <h2 class="pcard-titre">{p.data.titre}</h2>
           </a>
         ))}

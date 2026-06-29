@@ -2,8 +2,10 @@
 import Base from '../../layouts/Base.astro';
 import { Image } from 'astro:assets';
 import { render } from 'astro:content';
+import Axono from '../../components/Axono.astro';
 import { journalStaticPaths } from '../../lib/paths';
 import { dateLongue, tempsLecture } from '../../lib/journal';
+import { teinteFor } from '../../lib/teinte';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 import type { UIKey } from '../../i18n/ui';
 
@@ -20,12 +22,13 @@ const L = (p: string) => localizePath(p, locale);
 const lecture = d.tempsLecture ?? tempsLecture(d.extrait);
 const canonical = new URL(L(`/journal/${entry.id}`), Astro.site ?? Astro.url).toString();
 const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}`;
+const hash = (s: string) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0);
 ---
 <Base title={`${d.titre} — Journal — Agence L&L`} description={d.extrait}>
   <article class="container">
     <div class="article">
       <header class="art-head">
-        <a class="back plain" href={L('/journal')}>{t('article.back')}</a>
+        <a class="back plain" href={L('/journal')}>← {t('article.back').replace('← ', '')}</a>
         <p class="meta-line">
           <span class="rubrique">{t(`rubrique.${d.rubrique}` as UIKey)}</span>
           <span class="sep" aria-hidden="true">·</span>
@@ -37,55 +40,48 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
         <p class="signature">{d.signature}</p>
       </header>
 
-      <!-- Image héro — vraie photo si disponible, sinon placeholder tramé -->
       {d.image ? (
         <figure class="hero">
           <Image src={d.image} alt={d.titre} widths={[600, 980, 1400]} sizes="(max-width: 46rem) 100vw, 46rem" />
         </figure>
       ) : (
         <div class="hero ph" role="img" aria-label={d.titre}>
-          <span class="ph-cap">{d.imageLegende ?? t('placeholder.photo')}</span>
+          <span class="ph-cap">[ {d.imageLegende ?? 'photo — illustration de l’article'} ]</span>
         </div>
       )}
 
-      <!-- Chapô (l'accroche) puis corps -->
       <p class="chapo">{d.extrait}</p>
 
       <div class="prose">
         <Content />
       </div>
 
-      <!-- Projet lié -->
       {projetLie && (
         <a class="projet-lie plain" href={L(`/projets/${projetLie.id}`)}>
-          <span class="pl-num num" aria-hidden="true">N°{projetLie.numero}</span>
+          <Axono i={hash(projetLie.id)} teinte={teinteFor(projetLie.id)} class="pl-axo" />
           <span class="pl-body">
             <span class="pl-label">{t('article.related')}</span>
             <span class="pl-titre">{projetLie.titre}</span>
-            <span class="pl-meta meta">{projetLie.lieu} · {projetLie.annee} →</span>
+            <span class="pl-meta">{projetLie.lieu} · {projetLie.annee} →</span>
           </span>
         </a>
       )}
 
-      <!-- Barre de partage -->
       <div class="share">
         <span class="share-label">{t('article.share')}</span>
         <a class="pill plain" href={linkedInShare} target="_blank" rel="noopener noreferrer">LinkedIn</a>
         <button type="button" class="pill" id="copy-link" data-url={canonical}>{t('article.copy')}</button>
         {d.linkedInUrl && (
-          <a class="also plain" href={d.linkedInUrl} target="_blank" rel="noopener noreferrer">
-            {t('article.alsoLinkedIn')} ↗
-          </a>
+          <a class="also plain" href={d.linkedInUrl} target="_blank" rel="noopener noreferrer">{t('article.alsoLinkedIn')} ↗</a>
         )}
       </div>
 
-      <!-- Précédent / suivant (par date) -->
       {(plusRecent || plusAncien) && (
         <nav class="prevnext" aria-label="Autres articles">
           <div class="pn pn-prev">
             {plusRecent && (
               <a class="plain" href={L(`/journal/${plusRecent.id}`)}>
-                <span class="pn-label">{t('article.newer')}</span>
+                <span class="pn-label">← {t('article.newer').replace('← ', '')}</span>
                 <span class="pn-titre">{plusRecent.titre}</span>
               </a>
             )}
@@ -93,7 +89,7 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
           <div class="pn pn-next">
             {plusAncien && (
               <a class="plain" href={L(`/journal/${plusAncien.id}`)}>
-                <span class="pn-label">{t('article.older')}</span>
+                <span class="pn-label">{t('article.older').replace(' →', '')} →</span>
                 <span class="pn-titre">{plusAncien.titre}</span>
               </a>
             )}
@@ -112,10 +108,8 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
   let timer: number | undefined;
   btn?.addEventListener('click', async () => {
     const url = btn.getAttribute('data-url') || location.href;
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      // repli pour contextes non sécurisés / vieux navigateurs (API obsolète)
+    try { await navigator.clipboard.writeText(url); }
+    catch {
       const ta = document.createElement('textarea');
       ta.value = url; document.body.appendChild(ta); ta.select();
       (document as unknown as { execCommand: (c: string) => void }).execCommand('copy');
@@ -125,105 +119,96 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
       toast.hidden = false;
       requestAnimationFrame(() => toast.classList.add('is-on'));
       clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        toast.classList.remove('is-on');
-        window.setTimeout(() => { toast.hidden = true; }, 250);
-      }, 1800);
+      timer = window.setTimeout(() => { toast.classList.remove('is-on'); window.setTimeout(() => { toast.hidden = true; }, 250); }, 1800);
     }
   });
 </script>
 
 <style>
-  .article { max-width: 46rem; margin-inline: auto; padding-block: var(--space-xl) var(--space-2xl); }
+  .article { max-width: 46rem; margin-inline: auto; padding-block: clamp(1.5rem, 4vw, 2.5rem) var(--space-2xl); }
 
-  .back { font-family: var(--font-mono); font-size: var(--step--1); color: var(--stone); }
+  .back { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em; color: var(--stone); }
+  .back:hover { color: var(--ink); }
   .meta-line {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5ch;
-    font-family: var(--font-mono); font-size: var(--step--1);
-    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
-    margin-top: var(--space-m);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6ch;
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--stone); margin-top: clamp(1.2rem, 3vw, 1.8rem);
   }
   .meta-line .rubrique { color: var(--terracotta); }
   .meta-line .sep { color: var(--stone-light); }
-  .art-head h1 { font-size: var(--step-3); margin-top: var(--space-s); }
+  .art-head h1 {
+    font-family: var(--font-display); font-weight: 500; font-size: clamp(2rem, 4.4vw, 3rem);
+    line-height: 1.08; color: var(--ink); margin-top: 0.6rem;
+  }
   .signature {
-    font-family: var(--font-display); font-style: italic; font-size: var(--step-1);
-    color: var(--ink-soft); margin-top: var(--space-s);
+    font-family: var(--font-display); font-style: italic; font-size: 1.15rem;
+    color: var(--stone); margin-top: 0.8rem;
   }
 
-  .hero { margin-block: var(--space-l); }
-  .hero :global(img) { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: var(--rule); }
+  .hero { margin-block: clamp(1.6rem, 4vw, 2.4rem); }
+  .hero :global(img) { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border: var(--rule); display: block; }
   .hero.ph {
-    aspect-ratio: 3 / 2; display: grid; place-items: center; padding: var(--space-m);
-    border: var(--rule);
-    background: repeating-linear-gradient(135deg, #E4DED2 0 13px, #ECE6DA 13px 26px);
+    aspect-ratio: 16 / 10; display: grid; place-items: end start; padding: 0; border: var(--rule);
+    background: repeating-linear-gradient(135deg, #EFE9DE 0 11px, #E7DFD0 11px 22px);
   }
   .hero .ph-cap {
-    font-family: var(--font-mono); font-size: var(--step--1); color: var(--stone);
-    background: rgba(238, 234, 225, 0.7); padding: 0.25rem 0.6rem; text-align: center;
+    font-family: var(--font-mono); font-size: 0.66rem; color: var(--stone);
+    background: rgba(246, 242, 235, 0.72); padding: 0.3rem 0.6rem; margin: 1rem;
   }
 
   .chapo {
-    font-family: var(--font-display); font-size: var(--step-2); line-height: 1.4;
-    color: var(--ink-soft); max-width: none; margin-bottom: var(--space-l);
+    font-family: var(--font-display); font-weight: 500; font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+    line-height: 1.3; color: var(--ink); margin-bottom: clamp(1.4rem, 3vw, 2rem); max-width: none;
   }
 
   /* Carte « Projet lié » */
   .projet-lie {
-    display: flex; align-items: center; gap: var(--space-m);
+    display: flex; align-items: center; gap: 1.2rem;
     background: var(--paper-deep); border: var(--rule);
-    padding: var(--space-s) var(--space-m);
-    margin-top: var(--space-xl);
+    padding: 1rem 1.2rem; margin-top: clamp(2rem, 5vw, 3rem);
     transition: border-color 0.2s var(--ease);
   }
   .projet-lie:hover { border-color: var(--terracotta); }
-  .pl-num { font-size: var(--step-2); flex: none; }
-  .pl-body { display: flex; flex-direction: column; gap: 0.15rem; }
+  .projet-lie :global(.pl-axo) { width: 80px; flex: none; aspect-ratio: 4 / 3; padding: 0; }
+  .pl-body { display: flex; flex-direction: column; gap: 0.2rem; }
   .pl-label {
-    font-family: var(--font-mono); font-size: var(--step--1); text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--terracotta);
+    font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--terracotta);
   }
-  .pl-titre { font-family: var(--font-display); font-size: var(--step-1); }
+  .pl-titre { font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; color: var(--ink); }
+  .pl-meta { font-family: var(--font-mono); font-size: 0.68rem; color: var(--stone); }
   .projet-lie:hover .pl-titre { color: var(--terracotta-deep); }
 
-  /* Barre de partage */
+  /* Partage — pilules arrondies */
   .share {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
-    border-top: var(--rule); border-bottom: var(--rule);
-    padding-block: var(--space-m); margin-top: var(--space-xl);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem;
+    border-top: var(--rule); padding-top: clamp(1.4rem, 3vw, 2rem); margin-top: clamp(2rem, 5vw, 3rem);
   }
-  .share-label { font-family: var(--font-mono); font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+  .share-label { font-family: var(--font-mono); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--stone); }
   .pill {
-    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em;
-    border: 1px solid var(--stone-light); padding: 0.4rem 0.9rem; color: var(--ink-soft);
+    font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.04em;
+    border: 1px solid var(--stone-light); padding: 0.5rem 1.1rem; border-radius: 999px; color: var(--ink-soft);
     transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
   }
-  .pill:hover { color: var(--ink); border-color: var(--terracotta); }
-  .also { margin-left: auto; font-family: var(--font-mono); font-size: var(--step--1); color: var(--stone); }
+  .pill:hover { color: var(--ink); border-color: var(--ink); }
+  .also { margin-left: auto; font-family: var(--font-mono); font-size: 0.68rem; color: var(--stone); }
 
   /* Précédent / suivant */
-  .prevnext {
-    display: flex; justify-content: space-between; gap: var(--space-m);
-    margin-top: var(--space-xl);
-  }
+  .prevnext { display: flex; justify-content: space-between; gap: var(--space-m); margin-top: clamp(2.5rem, 6vw, 3.5rem); }
   .pn { max-width: 22ch; }
   .pn-next { text-align: right; margin-left: auto; }
-  .pn-label { display: block; font-family: var(--font-mono); font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--stone); }
-  .pn-titre { display: block; font-family: var(--font-display); font-size: var(--step-1); margin-top: 0.25rem; transition: color 0.2s var(--ease); }
+  .pn-label { display: block; font-family: var(--font-mono); font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--stone); }
+  .pn-titre { display: block; font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; margin-top: 0.3rem; color: var(--ink); transition: color 0.2s var(--ease); }
   .pn a:hover .pn-titre { color: var(--terracotta-deep); }
 
-  /* Toast « lien copié » */
   .toast {
     position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 0.5rem);
     background: var(--ink); color: var(--paper);
-    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em;
-    padding: 0.6rem 1rem; z-index: 80;
+    font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.04em; padding: 0.6rem 1rem; z-index: 80;
     opacity: 0; transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
   }
   .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
 
   @media (max-width: 38rem) {
-    .article { padding-block: var(--space-l) var(--space-xl); }
     .prevnext { flex-direction: column; gap: var(--space-l); }
     .pn-next { text-align: left; margin-left: 0; }
   }
