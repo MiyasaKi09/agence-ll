@@ -66,17 +66,11 @@ const hrefEn = new URL(alternatePath(Astro.url.pathname, 'en'), base).toString()
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500..700&family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Hanken+Grotesk:wght@300..800&family=JetBrains+Mono:wght@400..600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Hanken+Grotesk:wght@300..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
     />
   </head>
   <body>
     <a href="#contenu" class="skip-link">{t('skip')}</a>
-
-    {/* Repères d'impression — clin d'œil à l'épreuve typographique (décoratifs). */}
-    <span class="regmark tl" aria-hidden="true"></span>
-    <span class="regmark tr" aria-hidden="true"></span>
-    <span class="regmark bl" aria-hidden="true"></span>
-    <span class="regmark br" aria-hidden="true"></span>
 
     <Header />
     <main id="contenu">
@@ -86,23 +80,3 @@ const hrefEn = new URL(alternatePath(Astro.url.pathname, 'en'), base).toString()
   </body>
 </html>
 
-<style>
-  /* Repères de calage / « registration marks » dans les quatre coins. */
-  .regmark {
-    position: fixed;
-    width: 15px;
-    height: 15px;
-    z-index: 30;
-    pointer-events: none;
-    opacity: 0.5;
-  }
-  .regmark::before,
-  .regmark::after { content: ""; position: absolute; background: var(--terracotta); }
-  .regmark::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-0.5px); }
-  .regmark::after { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-0.5px); }
-  .regmark.tl { left: 14px; top: 14px; }
-  .regmark.tr { right: 14px; top: 14px; }
-  .regmark.bl { left: 14px; bottom: 14px; }
-  .regmark.br { right: 14px; bottom: 14px; }
-  @media (max-width: 48rem) { .regmark { display: none; } }
-</style>

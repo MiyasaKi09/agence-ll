@@ -6,28 +6,29 @@
    ===================================================================== */
 
 :root {
-  /* — COULEUR — terre, encre, sceau, mousse ————————————————————— */
-  --paper:           #EEEAE1; /* plâtre chaulé — légèrement plus froid que le cream « par défaut » */
-  --paper-deep:      #E4DED2; /* panneaux, alternance de fond */
-  --ink:             #1C1A17; /* encre chaude — jamais noir pur */
-  --ink-soft:        #4A463F;
-  --stone:           #6D6359; /* gris chaud — légendes, métadonnées (contraste AA ≥ 4.5:1 sur --paper) */
-  --stone-light:     #C7C0B4;
-  --terracotta:      #A24B2C; /* terre cuite / argile cuite — accent principal */
-  --terracotta-deep: #7E3A22;
-  --seal:            #C5392B; /* rouge tampon — numéros manuscrits, « validations » */
-  --moss:            #3E4A36; /* vert sombre — biodiversité, accent rare et précieux */
+  /* — COULEUR — crème, encre, terre cuite (direction « éditorial » validée) —
+     Reprise du design Claude « Site Agence L&L » : crème chaud, encre profonde,
+     terre cuite unique en accent. */
+  --paper:           #F6F2EB; /* crème chaud — fond de page */
+  --paper-deep:      #EFE9DE; /* surface / panneaux / placeholders */
+  --surface:         #EFE9DE; /* alias utilisé par les axonométries */
+  --ink:             #1A1714; /* encre profonde — quasi noir chaud */
+  --ink-soft:        #403A31; /* texte secondaire */
+  --stone:           #8A8275; /* gris chaud — métadonnées, légendes mono */
+  --stone-light:     #CFC6B6;
+  --terracotta:      #B86B4B; /* terre cuite — accent unique */
+  --terracotta-deep: #9A5538;
+  --seal:            #B86B4B; /* (compat) — même accent que la terre cuite */
+  --moss:            #5A5349; /* (compat) — neutralisé en gris chaud */
 
   /* — TYPOGRAPHIE ————————————————————————————————————————————————
-     Display : Fraunces (serif variable — monte l'optical-size pour les titres,
-               garde le contraste sous contrôle pour rester architectural)
-     Body    : Hanken Grotesk (grotesque chaud, moins « par défaut » qu'Inter)
-     Mono    : JetBrains Mono (codes projet, dates, surfaces, lieux)
-     Script  : Caveat (numéros manuscrits — placeholder de TA vraie main, à scanner) */
-  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+     Display : Cormorant Garamond (serif éditorial — titres, mots-marque)
+     Body    : Hanken Grotesk (grotesque chaud — texte courant)
+     Mono    : IBM Plex Mono (labels, nav, dates, lieux) */
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
   --font-body:    'Hanken Grotesk', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
-  --font-script:  'Caveat', cursive;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+  --font-script:  'Cormorant Garamond', serif;
 
   /* échelle typographique fluide — ratio ~1.28 */
   --step--1: clamp(0.83rem, 0.80rem + 0.15vw, 0.90rem);
@@ -62,7 +63,7 @@
        56rem  · petit desktop (accueil : hero/projets 2→1) */
 
   /* — DIVERS ————————————————————————————————————————————————————— */
-  --rule:   1px solid rgba(28, 26, 23, 0.16);   /* = --ink à 16% (sans color-mix → support universel) */
+  --rule:   1px solid rgba(26, 23, 20, 0.14);   /* = --ink à 14% (sans color-mix → support universel) */
   --radius: 0;                              /* zéro arrondi — registre éditorial/architectural */
   --ease:   cubic-bezier(0.2, 0.7, 0.2, 1);
   --shadow-press: 0 1px 0 rgba(28, 26, 23, 0.08);
