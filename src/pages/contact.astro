@@ -1,57 +1,55 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getContact } from '../lib/site';
-import { getLocale, useTranslations } from '../i18n/utils';
 
-const locale = getLocale(Astro.url);
-const t = useTranslations(locale);
-
-// FORMULAIRE — site statique, donc il faut un service côté serveur :
-//  • Le plus simple : Formspree (remplace l'action ci-dessous par ton endpoint).
-//  • Sans tiers : passe le site en `output: 'server'` + adaptateur @astrojs/vercel,
-//    crée une route API qui envoie l'e-mail via Resend (clé en variable d'env).
-// Voir CLAUDE.md › « Formulaire de contact ».
+// FORMULAIRE — site statique : remplace par ton endpoint Formspree (voir CLAUDE.md §8).
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/VOTRE_ID';
 
-// Accroche éditable depuis le CMS (sinon valeur par défaut).
-const { lede } = await getContact();
+const infos = [
+  { l: 'Atelier', v: ['12 rue du Cheval Blanc', '93500 Pantin'] },
+  { l: 'Courriel', v: ['bonjour@agence-ll.fr'], href: 'mailto:bonjour@agence-ll.fr' },
+  { l: 'Téléphone', v: ['+33 1 84 25 00 00'], href: 'tel:+33184250000' },
+  { l: 'Horaires', v: ['Lun – ven · 9 h – 18 h'] },
+];
 ---
 <Base
   title="Contact — Agence L&L"
-  description="Contacter l'Agence L&L pour un projet de rénovation énergétique, de logement ou d'équipement public."
+  description="Contacter l'Agence L&L pour un projet de rénovation, de logement ou d'équipement public."
 >
   <section class="section container contact-grid">
-    <div class="intro stack">
-      <p class="eyebrow">{t('nav.contact')}</p>
-      <h1>Parlons de votre <em>projet</em>.</h1>
-      <p class="lede">{lede}</p>
-      <div class="coords stack">
-        <p>
-          <span class="meta">E-mail</span><br />
-          <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a>
-        </p>
-        <p>
-          <span class="meta">Zone d’intervention</span><br />
-          Paris · Normandie
-        </p>
+    <!-- Colonne infos -->
+    <div class="infos">
+      <dl class="info-list">
+        {infos.map((i) => (
+          <div class="info-row">
+            <dt>{i.l}</dt>
+            <dd>
+              {i.href
+                ? <a class="plain" href={i.href}>{i.v[0]}</a>
+                : i.v.map((line, k) => <>{k > 0 && <br />}{line}</>)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div class="map ph" role="img" aria-label="Plan d’accès à l’atelier">
+        <span class="ph-cap">[ plan — accès à l’atelier ]</span>
       </div>
     </div>
 
+    <!-- Formulaire -->
     <form class="form" action={FORMSPREE_ENDPOINT} method="POST">
-      <div class="field">
-        <label for="nom">{t('form.nom')}</label>
-        <input id="nom" name="nom" type="text" required autocomplete="name" />
+      <div class="row2">
+        <div class="field">
+          <label for="nom">Nom</label>
+          <input id="nom" name="nom" type="text" required autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="email">Courriel</label>
+          <input id="email" name="email" type="email" required autocomplete="email" />
+        </div>
       </div>
       <div class="field">
-        <label for="email">{t('form.email')}</label>
-        <input id="email" name="email" type="email" required autocomplete="email" />
-      </div>
-      <div class="field">
-        <label for="organisation">{t('form.organisation')} <span class="opt">{t('form.optionnel')}</span></label>
-        <input id="organisation" name="organisation" type="text" autocomplete="organization" />
-      </div>
-      <div class="field">
-        <label for="type">{t('form.type')}</label>
+        <label for="type">Nature du projet</label>
         <select id="type" name="type">
           <option value="renovation">Rénovation énergétique</option>
           <option value="logement">Logement</option>
@@ -61,56 +59,70 @@ const { lede } = await getContact();
         </select>
       </div>
       <div class="field">
-        <label for="message">{t('form.message')}</label>
-        <textarea id="message" name="message" rows="6" required></textarea>
+        <label for="message">Votre projet en quelques lignes</label>
+        <textarea id="message" name="message" rows="7" required></textarea>
       </div>
-      <button type="submit" class="submit">{t('cta.envoyer')} →</button>
-      <p class="form-note meta">
-        En envoyant ce formulaire, vous acceptez d’être recontacté·e par l’Agence L&amp;L.
-      </p>
+      <button type="submit" class="submit">Envoyer le message</button>
     </form>
   </section>
 </Base>
 
 <style>
   .contact-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2xl);
-    align-items: start;
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 6vw, 5rem);
+    align-items: start; padding-top: clamp(1.5rem, 4vw, 2.5rem);
   }
-  .intro h1 { margin-block: var(--space-2xs) var(--space-xs); }
-  .coords { margin-top: var(--space-l); }
 
-  .form { display: grid; gap: var(--space-m); max-width: 34rem; }
-  .field { display: grid; gap: 0.35rem; }
-  label { font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em; }
-  .opt { color: var(--stone); text-transform: none; letter-spacing: 0; }
+  /* Infos */
+  .info-list { display: grid; }
+  .info-row {
+    display: grid; grid-template-columns: 7rem 1fr; gap: 1rem;
+    padding-block: 1.1rem; border-bottom: var(--rule); align-items: start;
+  }
+  .info-row:first-child { border-top: var(--rule); }
+  .info-row dt {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--terracotta); padding-top: 0.15rem;
+  }
+  .info-row dd { font-family: var(--font-body); font-size: 1rem; color: var(--ink); line-height: 1.5; }
+  .info-row a:hover { color: var(--terracotta); }
+
+  .map { aspect-ratio: 16 / 10; border: var(--rule); margin-top: clamp(1.5rem, 4vw, 2.4rem); }
+  .ph { background: repeating-linear-gradient(135deg, #EFE9DE 0 11px, #E7DFD0 11px 22px); display: grid; place-items: end start; }
+  .ph-cap {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+    color: var(--stone); background: rgba(246, 242, 235, 0.72); padding: 0.3rem 0.6rem; margin: 1rem;
+  }
+
+  /* Formulaire */
+  .form { display: grid; gap: 1.4rem; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+  .field { display: grid; gap: 0.5rem; }
+  label {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--stone);
+  }
   input, select, textarea {
-    background: var(--paper-deep);
-    border: var(--rule);
-    padding: 0.7rem 0.85rem;
-    font-size: var(--step-0);
-    border-radius: var(--radius);
+    background: transparent; border: var(--rule); padding: 0.8rem 0.9rem;
+    font-family: var(--font-body); font-size: 1rem; color: var(--ink); border-radius: 0;
   }
-  /* souris : on souligne juste le champ actif ; clavier : anneau de focus net */
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--terracotta);
-  }
+  input:focus, select:focus, textarea:focus { border-color: var(--terracotta); outline: none; }
   input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline: 2px solid var(--seal); outline-offset: 1px;
-    border-color: transparent;
+    outline: 2px solid var(--terracotta); outline-offset: 1px;
   }
   textarea { resize: vertical; }
   .submit {
-    justify-self: start;
-    font-family: var(--font-display); font-size: var(--step-1);
-    color: var(--paper); background: var(--ink);
-    padding: 0.6rem 1.4rem;
+    margin-top: 0.4rem; justify-self: stretch; width: 100%;
+    font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--paper); background: var(--ink); padding: 1rem 1.4rem;
     transition: background 0.2s var(--ease);
   }
   .submit:hover { background: var(--terracotta-deep); }
-  .form-note { margin-top: calc(-1 * var(--space-2xs)); }
 
   @media (max-width: 52rem) {
     .contact-grid { grid-template-columns: 1fr; gap: var(--space-xl); }
+  }
+  @media (max-width: 30rem) {
+    .row2 { grid-template-columns: 1fr; }
   }
 </style>

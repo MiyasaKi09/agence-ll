@@ -22,21 +22,22 @@ const L = (p: string) => localizePath(p, locale);
 
       <div class="col">
         <span class="h">Atelier</span>
-        <span>Paris&nbsp;—&nbsp;Normandie</span>
-        <a class="plain" href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a>
+        <span>12 rue du Cheval Blanc<br />93500 Pantin</span>
+        <a class="plain" href="mailto:bonjour@agence-ll.fr">bonjour@agence-ll.fr</a>
+        <a class="plain" href="tel:+33184250000">+33 1 84 25 00 00</a>
       </div>
 
       <div class="col">
         <span class="h">Suivre</span>
-        <span class="soon">LinkedIn <em>(à venir)</em></span>
-        <span class="soon">Instagram <em>(à venir)</em></span>
-        <a class="plain" href={L('/journal')}>{t('nav.journal')}</a>
+        <a class="plain" href="#">Instagram</a>
+        <a class="plain" href="#">LinkedIn</a>
+        <a class="plain" href={L('/journal')}>Journal · RSS</a>
       </div>
     </div>
 
     <div class="colophon">
-      <span>© {year} Agence&nbsp;L&amp;L — {t('footer.rights')}</span>
-      <span><a class="plain" href={L('/mentions-legales')}>{t('footer.mentions')}</a></span>
+      <span>© {year} Agence&nbsp;L&amp;L — architecture &amp; rénovation biosourcée</span>
+      <span><a class="plain" href={L('/mentions-legales')}>{t('footer.mentions')}</a> · <a class="plain" href={L('/mentions-legales')}>Politique de confidentialité</a></span>
     </div>
   </div>
 </footer>
