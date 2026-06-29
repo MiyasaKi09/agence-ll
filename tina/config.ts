@@ -1,11 +1,11 @@
 import { defineConfig, type Collection } from 'tinacms';
 
-// Branche git ciblée par l'édition en production (Tina Cloud commite dessus).
-const branch =
-  process.env.VERCEL_GIT_COMMIT_REF ||
-  process.env.GITHUB_BRANCH ||
-  process.env.HEAD ||
-  'main';
+// Branche git ciblée par l'édition (Tina Cloud commite dessus).
+// IMPORTANT : on cible TOUJOURS `main` (la seule branche indexée sur TinaCloud).
+// On NE prend PAS `VERCEL_GIT_COMMIT_REF` : sur un déploiement de prévisualisation,
+// ce serait une branche non indexée → erreur « Branch not found » dans l'admin.
+// Surcharge possible via TINA_BRANCH si besoin.
+const branch = process.env.TINA_BRANCH || 'main';
 
 // Petit utilitaire : slug propre à partir d'un titre.
 const slugify = (s: string) =>
