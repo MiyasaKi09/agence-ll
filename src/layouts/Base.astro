@@ -9,11 +9,14 @@ interface Props {
   description?: string;
   /** chemin absolu vers une image OG (1200×630) dans /public, ex. "/og/accueil.jpg" */
   ogImage?: string;
+  /** variables CSS de teinte appliquées à toute la page (fiche projet) */
+  theme?: string;
 }
 const {
   title = 'Agence L&L — Architecture',
   description = "Agence d'architecture entre Paris et la Normandie. Rénovation énergétique, logement, équipements publics. Matériaux biosourcés, attention au vivant.",
   ogImage = '/og-default.jpg',
+  theme,
 } = Astro.props;
 
 const locale = getLocale(Astro.url);
@@ -69,7 +72,7 @@ const hrefEn = new URL(alternatePath(Astro.url.pathname, 'en'), base).toString()
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Hanken+Grotesk:wght@300..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
     />
   </head>
-  <body>
+  <body style={theme} class={theme ? 'is-themed' : undefined}>
     <a href="#contenu" class="skip-link">{t('skip')}</a>
 
     <Header />

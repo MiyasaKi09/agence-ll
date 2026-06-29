@@ -4,7 +4,7 @@ import { Image } from 'astro:assets';
 import { render, getCollection } from 'astro:content';
 import Axono from '../../components/Axono.astro';
 import { projetStaticPaths } from '../../lib/paths';
-import { teinteFor, teinteVars } from '../../lib/teinte';
+import { teinteFor, teintePageVars } from '../../lib/teinte';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 import type { UIKey } from '../../i18n/ui';
 
@@ -36,8 +36,8 @@ const fiche = [
 const galCount = d.galerie?.length ?? 0;
 const teinte = teinteFor(entry.id);
 ---
-<Base title={`${d.titre} — Agence L&L`} description={d.resume}>
-  <article class="container" style={`${teinteVars(teinte)}`}>
+<Base title={`${d.titre} — Agence L&L`} description={d.resume} theme={teintePageVars(teinte)}>
+  <article class="container">
     <a class="back plain" href={L('/projets')}>← {t('projet.back').replace('← ', '')}</a>
 
     <!-- Hero -->
