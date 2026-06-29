@@ -1,0 +1,29 @@
+---
+// Axonométrie dessinée d'un bâtiment (reprise du design « Site Agence L&L »).
+// 3 variantes ; on choisit par index (rotation) — décoratif.
+import type { Teinte } from '../lib/teinte';
+import { teinteVars } from '../lib/teinte';
+interface Props { i?: number; class?: string; teinte?: Teinte }
+const { i = 0, class: cls, teinte } = Astro.props;
+const style = teinte ? teinteVars(teinte) : undefined;
+
+const AX = [
+  `<svg viewBox="-53.568 -72 96.744 126" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="31.2,18.0 -10.4,42.0 -10.4,-6.0 31.2,-30.0" fill="var(--ph2)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 -10.4,42.0 -10.4,-6.0 -41.6,-24.0" fill="var(--ph1)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-48.0 31.2,-30.0 10.4,-42.0 -20.8,-60.0" fill="var(--surface)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,-24.0 -10.4,-6.0 10.4,-42.0 -20.8,-60.0" fill="var(--ph1)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="31.2,-30.0 -10.4,-6.0 10.4,-42.0" fill="var(--ph2)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><line x1="-20.784" y1="-60" x2="10.392" y2="-42" stroke="#2A2620" stroke-width="1.1" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="-53.568 -60 159.096 150" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="93.5,54.0 52.0,78.0 52.0,54.0 93.5,30.0" fill="var(--ph2)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 52.0,78.0 52.0,54.0 -41.6,0.0" fill="var(--ph1)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-24.0 93.5,30.0 72.7,6.0 -20.8,-48.0" fill="var(--surface)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,0.0 52.0,54.0 72.7,6.0 -20.8,-48.0" fill="var(--ph1)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="93.5,30.0 52.0,54.0 72.7,6.0" fill="var(--ph2)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><line x1="-20.784" y1="-48" x2="72.744" y2="6" stroke="#2A2620" stroke-width="1.1" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="-53.568 -48 167.41 144" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="83.1,48.0 41.6,72.0 41.6,36.0 83.1,12.0" fill="var(--ph2)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 41.6,72.0 41.6,36.0 -41.6,-12.0" fill="var(--ph1)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-36.0 83.1,12.0 41.6,36.0 -41.6,-12.0" fill="var(--surface)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="101.8,68.4 74.8,84.0 74.8,55.2 101.8,39.6" fill="var(--ph2)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="47.8,68.4 74.8,84.0 74.8,55.2 47.8,39.6" fill="var(--ph1)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="74.8,24.0 101.8,39.6 74.8,55.2 47.8,39.6" fill="var(--surface)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
+];
+---
+<div class={`axono ${cls ?? ''}`} style={style} aria-hidden="true" set:html={AX[((i % AX.length) + AX.length) % AX.length]}></div>
+
+<style>
+  .axono {
+    aspect-ratio: 3 / 2;
+    display: grid;
+    place-items: center;
+    padding: 0.6rem 0;
+    --ph1: #E7DECF;
+    --ph2: #D8CCB7;
+    --surface: #F4EFE6;
+    transition: transform 0.4s var(--ease);
+  }
+</style>

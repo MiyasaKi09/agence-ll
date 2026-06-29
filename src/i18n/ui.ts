@@ -31,6 +31,9 @@ export const ui = {
     // libellés de sections (interface)
     'home.projetUne': 'Projet à la une',
     'home.auJournal': 'Au journal',
+    'home.projetsRecents': 'Projets récents',
+    'home.tousProjets': 'Tous les projets',
+    'home.voirGrille': 'Voir la grille',
     'home.lagence': "L'agence",
     'agence.duo': 'Le duo',
     'agence.territoire': 'Territoire',
@@ -43,6 +46,7 @@ export const ui = {
     'projets.bientot': 'Les premiers projets seront publiés ici très bientôt.',
     'placeholder.photo': '[ photo à venir ]',
     'placeholder.projet': '[ photo du projet — épreuve à venir ]',
+    'placeholder.photoTag': 'photo du projet — épreuve à venir',
     'epreuve.aVenir': 'épreuve à venir',
 
     // article
@@ -121,6 +125,9 @@ export const ui = {
 
     'home.projetUne': 'Featured project',
     'home.auJournal': 'From the journal',
+    'home.projetsRecents': 'Recent projects',
+    'home.tousProjets': 'All projects',
+    'home.voirGrille': 'See the grid',
     'home.lagence': 'The studio',
     'agence.duo': 'The duo',
     'agence.territoire': 'Territory',
@@ -133,6 +140,7 @@ export const ui = {
     'projets.bientot': 'The first projects will be published here very soon.',
     'placeholder.photo': '[ photo coming ]',
     'placeholder.projet': '[ project photo — proof coming ]',
+    'placeholder.photoTag': 'project photo — proof coming',
     'epreuve.aVenir': 'proof coming',
 
     'article.back': '← Journal',

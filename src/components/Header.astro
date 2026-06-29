@@ -1,16 +1,14 @@
 ---
-import Monogram from './Monogram.astro';
-import { getLocale, useTranslations, localizePath, alternatePath, isLocaleReady } from '../i18n/utils';
-import { locales, localeLabel } from '../i18n/ui';
+import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 
 const path = Astro.url.pathname;
 const locale = getLocale(Astro.url);
 const t = useTranslations(locale);
 
 const nav = [
-  { href: '/agence', key: 'nav.agence' as const },
   { href: '/projets', key: 'nav.projets' as const },
   { href: '/journal', key: 'nav.journal' as const },
+  { href: '/agence', key: 'nav.agence' as const },
   { href: '/contact', key: 'nav.contact' as const },
 ];
 const isActive = (href: string) => {
@@ -21,8 +19,7 @@ const isActive = (href: string) => {
 <header class="site-header">
   <div class="container bar">
     <a href={localizePath('/', locale)} class="brand plain" aria-label="Agence L&L">
-      <Monogram variant="mark" size={42} />
-      <span class="wordmark">Agence&nbsp;L<span class="amp">&amp;</span>L</span>
+      Agence&nbsp;L<span class="amp">&amp;</span>L
     </a>
 
     <nav aria-label="Navigation principale">
@@ -37,108 +34,97 @@ const isActive = (href: string) => {
           </li>
         ))}
       </ul>
-
-      {/* Sélecteur de langue — pointe vers la page équivalente dans l'autre langue */}
-      <div class="lang" aria-label={t('lang.aria')}>
-        {locales.map((loc, i) => (
-          <>
-            {i > 0 && <span class="sep" aria-hidden="true">·</span>}
-            {loc === locale ? (
-              <span class="on" aria-current="true">{localeLabel[loc]}</span>
-            ) : isLocaleReady(loc) ? (
-              <a class="off plain" hreflang={loc} href={alternatePath(path, loc)}>{localeLabel[loc]}</a>
-            ) : (
-              <span class="off soon" title="à venir">{localeLabel[loc]}</span>
-            )}
-          </>
-        ))}
-      </div>
     </nav>
+
+    <a href={localizePath('/contact', locale)} class="rdv plain">Prendre rendez-vous</a>
   </div>
 </header>
 
 <style>
+  /* « Liquid glass » léger : verre dépoli translucide qui suit la teinte de la page,
+     forte saturation/flou, fin liseré de lumière en haut, ombre douce dessous. */
   .site-header {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(238, 234, 225, 0.86); /* = --paper à 86% */
-    backdrop-filter: saturate(1.2) blur(8px);
-    -webkit-backdrop-filter: saturate(1.2) blur(8px);
-    border-bottom: var(--rule);
+    background: color-mix(in srgb, var(--paper) 60%, transparent);
+    backdrop-filter: blur(20px) saturate(185%);
+    -webkit-backdrop-filter: blur(20px) saturate(185%);
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      0 8px 24px -12px rgba(26, 23, 20, 0.12);
+    transition: background-color 0.45s var(--ease);
+  }
+  /* Repli si color-mix indisponible (vieux navigateurs) */
+  @supports not (background: color-mix(in srgb, white, black)) {
+    .site-header { background: rgba(246, 242, 235, 0.72); }
   }
   .bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     gap: var(--space-m);
-    min-height: 4.5rem;
+    min-height: 4.75rem;
   }
+
+  /* Mot-marque — Cormorant Garamond 25px / 600 (& non italique) */
   .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  .brand :global(svg) { color: var(--ink); flex: none; }
-  .wordmark {
+    justify-self: start;
     font-family: var(--font-display);
-    font-size: var(--step-1);
+    font-size: 25px;
     font-weight: 600;
-    letter-spacing: 0.01em;
-    font-variation-settings: 'opsz' 40, 'SOFT' 28;
+    letter-spacing: 0.25px;
+    color: var(--ink);
     white-space: nowrap;
   }
-  .wordmark .amp { color: var(--seal); font-style: italic; }
 
-  nav {
-    display: flex;
-    align-items: center;
-    gap: clamp(1rem, 3vw, 2.2rem);
-  }
+  /* Navigation centrale — Hanken Grotesk 14px MAJ (comme le design) */
+  nav { justify-self: center; }
   nav ul {
     display: flex;
-    gap: clamp(0.85rem, 3vw, 2.2rem);
+    gap: clamp(1.4rem, 3vw, 2.5rem);
     list-style: none;
     padding: 0;
+    margin: 0;
   }
   .nav-link {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.1em;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.84px;
     text-transform: uppercase;
-    color: var(--ink-soft);
+    color: var(--ink);
     padding-block: 0.3rem;
     border-bottom: 1.5px solid transparent;
     white-space: nowrap;
     transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
   }
-  .nav-link:hover { color: var(--ink); }
-  .nav-link[aria-current='page'] {
-    border-color: var(--seal);
+  .nav-link:hover { color: var(--terracotta); }
+  .nav-link[aria-current='page'] { border-color: var(--terracotta); }
+
+  /* Bouton « Prendre rendez-vous » — Hanken Grotesk 11px MAJ, contour ink */
+  .rdv {
+    justify-self: end;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.88px;
+    text-transform: uppercase;
     color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 10px 16px;
+    white-space: nowrap;
+    transition: background-color 0.2s var(--ease), color 0.2s var(--ease);
   }
+  .rdv:hover { background: var(--ink); color: var(--paper); }
 
-  .lang {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35ch;
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    letter-spacing: 0.08em;
-    color: var(--ink-soft);
-    border: 1px solid rgba(28, 26, 23, 0.16);
-    padding: 0.25rem 0.55rem;
+  /* Responsive : on replie la nav et le bouton sous le mot-marque */
+  @media (max-width: 60rem) {
+    .bar { grid-template-columns: 1fr auto; }
+    nav { display: none; }
   }
-  .lang .on { color: var(--seal); font-weight: 600; }
-  .lang .off { color: var(--ink-soft); }
-  .lang a.off:hover { color: var(--ink); }
-  .lang .off.soon { opacity: 0.45; cursor: default; }
-  .lang .sep { opacity: 0.4; }
-
   @media (max-width: 30rem) {
-    .wordmark { display: none; }
-  }
-  @media (max-width: 24rem) {
-    .lang { display: none; }
+    .rdv { font-size: 0.62rem; padding: 0.5rem 0.7rem; }
   }
 </style>

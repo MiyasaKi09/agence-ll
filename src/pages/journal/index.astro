@@ -1,13 +1,14 @@
 ---
 import Base from '../../layouts/Base.astro';
-import ArticleCard from '../../components/ArticleCard.astro';
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import { RUBRIQUE_ORDER } from '../../lib/journal';
-import { getLocale, useTranslations } from '../../i18n/utils';
+import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 import type { UIKey } from '../../i18n/ui';
 
 const locale = getLocale(Astro.url);
 const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
 
 const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
@@ -16,37 +17,46 @@ const chips = [
   { key: 'tout', label: t('journal.all') },
   ...RUBRIQUE_ORDER.map((r) => ({ key: r, label: t(`rubrique.${r}` as UIKey) })),
 ];
+
+const RUB: Record<string, string> = {
+  chantiers: 'Chantier', reflexions: 'Réflexion', presse: 'Presse', distinctions: 'Distinction',
+};
+const dShort = (d: Date) =>
+  `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getFullYear()).slice(-2)}`;
 ---
 <Base
   title="Journal — Agence L&L"
   description="Le journal de l'Agence L&L : retours de chantier, partis pris techniques, presse et distinctions."
 >
   <section class="section container">
-    <header class="journal-head">
-      <p class="eyebrow">{t('journal.eyebrow')}</p>
-      <h1>Ce que nous apprenons, <em>chantier après chantier</em>.</h1>
-      <p class="lede">
-        Retours de chantier, partis pris techniques, revues de presse et distinctions.
-        Certains billets prolongent nos publications&nbsp;; d'autres précisent un détail
-        de chantier.
-      </p>
-    </header>
-
     {articles.length > 0 ? (
       <>
         <div class="filters" role="group" aria-label="Filtrer par rubrique">
           {chips.map((c, i) => (
-            <button
-              type="button"
-              class={`chip${i === 0 ? ' is-active' : ''}`}
-              data-chip={c.key}
-              aria-pressed={i === 0 ? 'true' : 'false'}
-            >{c.label}</button>
+            <button type="button" class={`chip${i === 0 ? ' is-active' : ''}`} data-chip={c.key}
+              aria-pressed={i === 0 ? 'true' : 'false'}>{c.label}</button>
           ))}
         </div>
 
         <div class="journal-grid">
-          {articles.map((article) => <ArticleCard article={article} compact />)}
+          {articles.map((a) => (
+            <a class="jcard plain" href={L(`/journal/${a.id}`)} data-rubrique={a.data.rubrique}>
+              <div class="jcard-visual">
+                {a.data.image ? (
+                  <Image src={a.data.image} alt={a.data.titre} widths={[320, 480]} sizes="(max-width: 52rem) 100vw, 30vw" />
+                ) : (
+                  <div class="ph" aria-hidden="true"></div>
+                )}
+              </div>
+              <p class="jcard-meta">
+                <span class="rub">{RUB[a.data.rubrique] ?? a.data.rubrique}</span>
+                <span class="dot" aria-hidden="true">·</span>
+                <time datetime={a.data.date.toISOString()}>{dShort(a.data.date)}</time>
+              </p>
+              <h2 class="jcard-titre">{a.data.titre}</h2>
+              <p class="jcard-extrait">{a.data.extrait}</p>
+            </a>
+          ))}
         </div>
 
         <p class="journal-empty" hidden>{t('journal.empty')}</p>
@@ -63,13 +73,11 @@ const chips = [
     const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-chip]'));
     const cards = Array.from(grid.children) as HTMLElement[];
     const empty = document.querySelector<HTMLElement>('.journal-empty');
-
     const apply = (r: string, pushUrl = true) => {
       let visible = 0;
       for (const card of cards) {
         const show = r === 'tout' || card.dataset.rubrique === r;
-        card.hidden = !show;
-        if (show) visible++;
+        card.hidden = !show; if (show) visible++;
       }
       for (const chip of chips) {
         const on = chip.dataset.chip === r;
@@ -79,49 +87,53 @@ const chips = [
       if (empty) empty.hidden = visible !== 0;
       if (pushUrl) {
         const url = new URL(location.href);
-        if (r === 'tout') url.searchParams.delete('rubrique');
-        else url.searchParams.set('rubrique', r);
+        if (r === 'tout') url.searchParams.delete('rubrique'); else url.searchParams.set('rubrique', r);
         history.replaceState({}, '', url);
       }
     };
-
     chips.forEach((chip) => chip.addEventListener('click', () => apply(chip.dataset.chip!)));
-
     const initial = new URLSearchParams(location.search).get('rubrique') ?? 'tout';
-    const known = chips.some((c) => c.dataset.chip === initial);
-    apply(known ? initial : 'tout', false);
+    apply(chips.some((c) => c.dataset.chip === initial) ? initial : 'tout', false);
   }
 </script>
 
 <style>
-  .journal-head { max-width: 760px; margin-bottom: var(--space-xl); }
-  .journal-head h1 { font-size: var(--step-3); margin-block: var(--space-xs) var(--space-m); max-width: 18ch; }
-  .journal-head .lede { max-width: 56ch; }
-
-  /* Chips de filtre — forme « tampon » à angles vifs (style maison, zéro arrondi). */
-  .filters {
-    display: flex; flex-wrap: wrap; gap: 0.6rem;
-    margin-bottom: clamp(1.8rem, 4vw, 2.6rem);
-  }
+  /* Chips-pilules arrondies (comme le design) */
+  .filters { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: clamp(1.8rem, 4vw, 2.6rem); }
   .chip {
-    font-family: var(--font-mono); font-size: var(--step--1);
-    letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--ink-soft);
-    border: 1px solid var(--stone-light);
-    padding: 0.5rem 1rem;
+    font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.04em;
+    color: var(--ink-soft); border: 1px solid var(--stone-light);
+    padding: 0.45rem 1.1rem; border-radius: 999px;
     transition: color 0.2s var(--ease), background 0.2s var(--ease), border-color 0.2s var(--ease);
   }
-  .chip:hover { border-color: var(--terracotta); color: var(--ink); }
-  .chip.is-active {
-    background: var(--ink); color: var(--paper); border-color: var(--ink);
-  }
+  .chip:hover { border-color: var(--ink); color: var(--ink); }
+  .chip.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
   .journal-grid {
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(2rem, 4vw, 2.6rem) clamp(1.6rem, 3vw, 2rem);
+    gap: clamp(2rem, 4vw, 3rem) clamp(1.4rem, 3vw, 2.2rem);
+  }
+  .ph { width: 100%; height: 100%; background: repeating-linear-gradient(135deg, var(--ph1, #E7DFD0) 0 13px, var(--surface, #EFE9DE) 13px 26px); }
+  .jcard-visual { aspect-ratio: 3 / 2; overflow: hidden; border: var(--rule); margin-bottom: 0.9rem; }
+  .jcard-visual :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s var(--ease); }
+  .jcard:hover .jcard-visual :global(img) { transform: scale(1.03); }
+  .jcard-meta {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--stone); display: flex; gap: 0.6ch; align-items: center;
+  }
+  .jcard-meta .rub { color: var(--terracotta); }
+  .jcard-meta .dot { opacity: 0.5; }
+  .jcard-titre {
+    font-family: var(--font-display); font-weight: 500; font-size: 1.4rem; line-height: 1.15;
+    color: var(--ink); margin-top: 0.5rem; transition: color 0.2s var(--ease);
+  }
+  .jcard:hover .jcard-titre { color: var(--terracotta-deep); }
+  .jcard-extrait {
+    font-family: var(--font-body); font-size: 0.92rem; line-height: 1.5;
+    color: var(--ink-soft); margin-top: 0.5rem; max-width: 42ch;
   }
   .journal-empty { margin-top: var(--space-l); color: var(--ink-soft); }
 
-  @media (max-width: 60rem) { .journal-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 38rem) { .journal-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 52rem) { .journal-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 34rem) { .journal-grid { grid-template-columns: 1fr; } }
 </style>

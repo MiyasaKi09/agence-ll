@@ -1,32 +1,80 @@
 ---
 import Base from '../../layouts/Base.astro';
-import ProjectCard from '../../components/ProjectCard.astro';
+import Axono from '../../components/Axono.astro';
 import { getCollection } from 'astro:content';
-import { getLocale, useTranslations } from '../../i18n/utils';
+import { teinteFor } from '../../lib/teinte';
+import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 
 const locale = getLocale(Astro.url);
 const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
 
 const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
+
+// Catégorie pour les filtres (déduite du programme / des tags)
+function cat(p: typeof projets[number]): string {
+  const s = `${p.data.programme} ${p.data.tags.join(' ')}`.toLowerCase();
+  if (s.includes('logement')) return 'logements';
+  if (s.includes('équipement') || s.includes('equipement') || s.includes('école') || s.includes('ecole') || s.includes('médiathèque')) return 'equipements';
+  if (s.includes('rénovation') || s.includes('renovation') || s.includes('réhab') || s.includes('rehab')) return 'renovation';
+  return 'neuf';
+}
+
+const filters = [
+  { key: 'tous', label: 'Tous' },
+  { key: 'logements', label: 'Logements' },
+  { key: 'equipements', label: 'Équipements' },
+  { key: 'renovation', label: 'Rénovation' },
+  { key: 'neuf', label: 'Neuf' },
+];
+
+// Positions décoratives des pins sur la carte
+const pinPos = [
+  [118, 60], [165, 78], [140, 92], [158, 104], [128, 128], [92, 150], [175, 130], [110, 110],
+];
 ---
 <Base
   title="Projets — Agence L&L"
   description="Réalisations et études de l'Agence L&L : rénovation énergétique, logement, équipements publics, entre Paris et la Normandie."
 >
   <section class="section container">
-    <header class="page-head">
-      <p class="eyebrow">{t('projets.eyebrow')}</p>
-      <h1>{t('nav.projets')}</h1>
-      <p class="lede">
-        Concours, faisabilités, rénovations, chantiers. Une pratique qui part de
-        l’existant et cherche la sobriété juste.
-      </p>
-    </header>
+    <div class="proj-head">
+      <div class="filters-wrap">
+        <div class="filters" role="tablist" aria-label="Filtrer les projets">
+          {filters.map((f) => (
+            <button class="chip-link" data-filter={f.key} aria-pressed={f.key === 'tous' ? 'true' : 'false'}>{f.label}</button>
+          ))}
+        </div>
+        <div class="sort-row">
+          <span class="sort">Trier : plus récents ↓</span>
+          <span class="zone">Toute l’Île-de-France</span>
+        </div>
+      </div>
+
+      <div class="map-wrap" aria-hidden="true">
+        <span class="map-label">Carte des projets</span>
+        <svg class="map" viewBox="0 0 220 180" role="img">
+          <path d="M70,40 C95,18 150,20 178,42 C205,62 200,98 182,120 C168,140 150,150 120,152 C88,154 58,146 44,120 C32,98 38,60 70,40 Z"
+                fill="var(--paper-deep)" stroke="var(--stone-light)" stroke-width="1.2" />
+          {projets.slice(0, pinPos.length).map((_, i) => (
+            <g transform={`translate(${pinPos[i][0]}, ${pinPos[i][1]})`}>
+              <circle r="9" fill="var(--ink)" />
+              <text y="3.5" text-anchor="middle" fill="var(--paper)" font-size="9" font-family="var(--font-mono)">{i + 1}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </div>
 
     {projets.length > 0 ? (
-      <div class="grid">
-        {projets.map((projet) => <ProjectCard projet={projet} />)}
+      <div class="proj-grid">
+        {projets.map((p, i) => (
+          <a class="pcard plain" href={L(`/projets/${p.id}`)} data-cat={cat(p)}>
+            <Axono i={i} teinte={teinteFor(p.id)} class="pcard-axo" />
+            <h2 class="pcard-titre">{p.data.titre}</h2>
+          </a>
+        ))}
       </div>
     ) : (
       <p class="lede">{t('projets.empty')}</p>
@@ -34,12 +82,65 @@ const projets = (await getCollection('projets', ({ data }) => !data.brouillon))
   </section>
 </Base>
 
+<script>
+  const chips = document.querySelectorAll<HTMLButtonElement>('.chip-link');
+  const cards = document.querySelectorAll<HTMLElement>('.pcard');
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const f = chip.dataset.filter;
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      cards.forEach((card) => {
+        const show = f === 'tous' || card.dataset.cat === f;
+        card.style.display = show ? '' : 'none';
+      });
+    });
+  });
+</script>
+
 <style>
-  .page-head { max-width: 46ch; margin-bottom: var(--space-2xl); }
-  .page-head h1 { margin-block: var(--space-xs) var(--space-m); }
-  .grid {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-2xl) var(--space-l);
+  .proj-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: var(--space-l); margin-bottom: clamp(2rem, 5vw, 3.5rem); flex-wrap: wrap;
   }
-  @media (max-width: 56rem) { .grid { grid-template-columns: 1fr; gap: var(--space-xl); } }
+  .filters { display: flex; flex-wrap: wrap; gap: clamp(0.6rem, 2vw, 1.2rem); }
+  .chip-link {
+    font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.02em;
+    color: var(--stone); padding: 0.1rem 0; border-bottom: 1.5px solid transparent;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .chip-link:hover { color: var(--ink); }
+  .chip-link[aria-pressed='true'] { color: var(--ink); border-color: var(--ink); }
+  .sort-row {
+    display: flex; gap: clamp(1rem, 3vw, 2.5rem); margin-top: 0.9rem;
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--stone);
+  }
+  .sort-row .sort { color: var(--ink-soft); }
+
+  .map-wrap { text-align: right; }
+  .map-label {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--stone);
+  }
+  .map { width: clamp(160px, 18vw, 220px); height: auto; margin-top: 0.4rem; display: block; margin-left: auto; }
+
+  .proj-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(2.5rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem);
+  }
+  .pcard { display: block; text-align: center; }
+  .pcard :global(.pcard-axo) { margin-bottom: 1rem; }
+  .pcard:hover :global(.axono) { transform: translateY(-5px); }
+  .pcard-titre {
+    font-family: var(--font-display); font-weight: 500; font-size: 1.5rem; line-height: 1.15;
+    color: var(--ink); transition: color 0.2s var(--ease);
+  }
+  .pcard:hover .pcard-titre { color: var(--terracotta-deep); }
+
+  @media (max-width: 56rem) {
+    .proj-grid { grid-template-columns: repeat(2, 1fr); }
+    .map-wrap { display: none; }
+  }
+  @media (max-width: 34rem) {
+    .proj-grid { grid-template-columns: 1fr; }
+  }
 </style>

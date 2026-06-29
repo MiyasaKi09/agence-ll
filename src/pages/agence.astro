@@ -1,104 +1,168 @@
 ---
 import Base from '../layouts/Base.astro';
-import Monogram from '../components/Monogram.astro';
-import { getAgence } from '../lib/site';
-import { getLocale, useTranslations } from '../i18n/utils';
 
-const locale = getLocale(Astro.url);
-const t = useTranslations(locale);
-
-// Textes éditables depuis le CMS (sinon valeurs par défaut). Voir src/lib/site.ts.
-const { introParagraphes, savoirFaire, equipe, territoireTexte } = await getAgence();
+const approche = [
+  { n: '01', titre: 'Diagnostiquer', desc: "Comprendre l'existant : structure, énergie, usages." },
+  { n: '02', titre: "Rénover d'abord", desc: "La démolition en dernier recours. On valorise l'existant." },
+  { n: '03', titre: 'Construire biosourcé', desc: 'Bois, paille, terre crue : des matériaux qui stockent le carbone.' },
+  { n: '04', titre: 'Mesurer', desc: 'Chiffrer les gains. Des résultats, pas des promesses.' },
+];
+const stats = [
+  { v: '2009', l: 'Fondation' },
+  { v: '120+', l: 'Projets livrés' },
+  { v: '−65%', l: 'Conso. moyenne' },
+  { v: '9', l: 'Architectes & ingénieurs' },
+];
+const equipe = [
+  { nom: 'Lucie Lambert', role: 'Architecte cofondatrice' },
+  { nom: 'Louis Lefèvre', role: 'Architecte cofondateur' },
+  { nom: 'Inès Maréchal', role: 'Cheffe de projet' },
+  { nom: 'Karim Bensaïd', role: 'Ingénieur bois & structure' },
+];
 ---
 <Base
   title="L’agence — Agence L&L"
-  description="Agence L&L, un duo d'architectes entre Paris et la Normandie. Rénovation énergétique, logement, équipements publics, construction biosourcée."
+  description="Agence L&L, un atelier d'architecture entre Paris et la Normandie. Rénovation, logement, équipements publics, construction biosourcée."
 >
-  <!-- Manifeste -->
-  <section class="section container manifeste">
-    <p class="eyebrow">{t('home.lagence')}</p>
-    <h1>Une architecture du déjà-là, sobre et <em>vivante</em>.</h1>
-    <div class="manifeste-body prose">
-      {introParagraphes.map((p) => <p>{p}</p>)}
-    </div>
-  </section>
+  <section class="section container agence">
+    <!-- Titre -->
+    <p class="eyebrow">L’agence</p>
+    <h1 class="lede-titre">Nous préférons rénover que démolir, et bâtir avec le vivant.</h1>
 
-  <!-- Savoir-faire -->
-  <section class="section container" id="savoir-faire" aria-labelledby="sf-h">
-    <div class="section-head">
-      <h2 id="sf-h">Ce que nous faisons</h2>
-      <span class="meta">{t('footer.savoirfaire')}</span>
+    <!-- Photo -->
+    <div class="hero-photo ph" role="img" aria-label="L’équipe sur un chantier">
+      <span class="ph-cap">[ photo — l’équipe sur un chantier ]</span>
     </div>
-    <dl class="sf-list">
-      {savoirFaire.map((s) => (
-        <div class="sf-row">
-          <dt>{s.titre}</dt>
-          <dd>{s.description}</dd>
+
+    <!-- Manifeste -->
+    <div class="manifeste">
+      <span class="eyebrow">Manifeste</span>
+      <div class="manifeste-body">
+        <p class="statement">Un atelier d’architecture fondé en 2009 : des bâtiments sobres, sains et durables, en rénovation comme en neuf.</p>
+        <p class="subline">Le bâtiment le plus écologique est presque toujours celui qui existe déjà.</p>
+      </div>
+    </div>
+
+    <!-- Notre approche -->
+    <div class="approche">
+      <h2>Notre approche</h2>
+      <div class="approche-grid">
+        {approche.map((a) => (
+          <div class="appro">
+            <span class="appro-n">{a.n}</span>
+            <h3>{a.titre}</h3>
+            <p>{a.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      {stats.map((s) => (
+        <div class="stat">
+          <span class="stat-v">{s.v}</span>
+          <span class="stat-l">{s.l}</span>
         </div>
       ))}
-    </dl>
-  </section>
-
-  <!-- Équipe -->
-  <section class="section container equipe" id="equipe" aria-labelledby="eq-h">
-    <div class="section-head">
-      <h2 id="eq-h">L&amp;L — deux Lenglet</h2>
-      <span class="meta">{t('agence.duo')}</span>
     </div>
-    <div class="equipe-grid">
-      {equipe.map((m) => (
-        <article class="membre stack">
-          <div class="portrait" aria-hidden="true"></div>
-          <h3>{m.nom}</h3>
-          <p>{m.bio}</p>
-        </article>
-      ))}
-    </div>
-  </section>
 
-  <!-- Territoire -->
-  <section class="section container territoire">
-    <Monogram variant="plain" size={120} class="terr-seal" />
-    <div>
-      <p class="eyebrow">{t('agence.territoire')}</p>
-      <h2>Entre Paris et la <em>Normandie</em>.</h2>
-      <p class="lede">{territoireTexte}</p>
+    <!-- L’équipe -->
+    <div class="equipe">
+      <h2>L’équipe</h2>
+      <div class="equipe-grid">
+        {equipe.map((m) => (
+          <div class="membre">
+            <div class="portrait ph" aria-hidden="true"></div>
+            <h3>{m.nom}</h3>
+            <p>{m.role}</p>
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 </Base>
 
 <style>
-  .manifeste h1 { margin-block: var(--space-s) var(--space-l); max-width: 18ch; }
-  .manifeste-body { font-size: var(--step-1); }
-
-  .sf-list { display: grid; gap: 0; }
-  .sf-row {
-    display: grid; grid-template-columns: 18rem 1fr; gap: var(--space-l);
-    padding-block: var(--space-m); border-top: var(--rule); align-items: baseline;
+  .agence { padding-top: clamp(2rem, 5vw, 3.4rem); }
+  .lede-titre {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: clamp(2.4rem, 5.5vw, 4rem); line-height: 1.04; letter-spacing: -0.01em;
+    color: var(--ink); max-width: 16ch; margin: 0.8rem 0 clamp(2rem, 5vw, 3rem);
   }
-  .sf-row dt { font-family: var(--font-display); font-size: var(--step-1); font-variation-settings: 'opsz' 40, 'SOFT' 28; }
-  .sf-row dd { color: var(--ink-soft); }
 
-  .equipe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl); }
-  .portrait {
-    aspect-ratio: 3 / 4; background: var(--paper-deep);
-    border: var(--rule);
-    background-image: repeating-linear-gradient(45deg,
-      color-mix(in srgb, var(--moss) 8%, var(--paper-deep)) 0 12px,
-      var(--paper-deep) 12px 24px);
+  .ph {
+    background: repeating-linear-gradient(135deg, var(--ph1, #E7DFD0) 0 13px, var(--surface, #EFE9DE) 13px 26px);
+    display: grid; place-items: end start;
   }
-  .membre h3 { font-size: var(--step-2); }
-
-  .territoire {
-    display: grid; grid-template-columns: auto 1fr; gap: var(--space-xl);
-    align-items: center; padding-block: var(--space-3xl);
+  .ph-cap {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+    color: var(--stone); background: rgba(246, 242, 235, 0.72); padding: 0.3rem 0.6rem; margin: 1rem;
   }
-  .terr-seal { color: var(--terracotta-deep); }
-  .territoire h2 { margin-block: var(--space-xs) var(--space-s); }
+  .hero-photo { aspect-ratio: 16 / 7; border: var(--rule); }
 
-  @media (max-width: 52rem) {
-    .sf-row { grid-template-columns: 1fr; gap: var(--space-2xs); }
-    .equipe-grid { grid-template-columns: 1fr; gap: var(--space-l); }
-    .territoire { grid-template-columns: 1fr; gap: var(--space-l); }
+  /* Manifeste */
+  .manifeste {
+    display: grid; grid-template-columns: 180px 1fr; gap: clamp(1.5rem, 4vw, 2.5rem);
+    border-top: var(--rule); border-bottom: var(--rule);
+    padding-block: clamp(2rem, 5vw, 3rem); margin-top: clamp(2.5rem, 6vw, 4rem);
+  }
+  .statement {
+    font-family: var(--font-display); font-weight: 500; font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    line-height: 1.25; color: var(--ink); max-width: 30ch;
+  }
+  .subline { margin-top: 1.2rem; color: var(--ink-soft); font-size: 1rem; max-width: 46ch; }
+
+  /* Notre approche */
+  .approche { margin-top: clamp(2.5rem, 6vw, 4rem); }
+  .approche h2, .equipe h2 {
+    font-family: var(--font-display); font-weight: 500; font-size: clamp(1.6rem, 3vw, 2.1rem);
+    margin-bottom: clamp(1.4rem, 3vw, 2rem);
+  }
+  .approche-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1.4rem, 3vw, 2.2rem); }
+  .appro-n { font-family: var(--font-mono); font-size: 0.72rem; color: var(--terracotta); letter-spacing: 0.05em; }
+  .appro h3 {
+    font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; margin-top: 0.4rem; color: var(--ink);
+  }
+  .appro p { font-family: var(--font-body); font-size: 0.9rem; line-height: 1.5; color: var(--ink-soft); margin-top: 0.5rem; }
+
+  /* Stats */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border: var(--rule); margin-top: clamp(2.5rem, 6vw, 4rem);
+  }
+  .stat { padding: clamp(1.4rem, 3vw, 2rem); border-left: var(--rule); }
+  .stat:first-child { border-left: 0; }
+  .stat-v {
+    display: block; font-family: var(--font-display); font-weight: 500;
+    font-size: clamp(1.8rem, 3.4vw, 2.4rem); color: var(--ink); line-height: 1;
+  }
+  .stat-l {
+    display: block; font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--stone); margin-top: 0.6rem;
+  }
+
+  /* L’équipe */
+  .equipe { margin-top: clamp(2.5rem, 6vw, 4rem); }
+  .equipe-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1.4rem, 3vw, 2.2rem); }
+  .portrait { aspect-ratio: 1 / 1; border: var(--rule); }
+  .membre h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; margin-top: 0.8rem; color: var(--ink); }
+  .membre p { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.04em; color: var(--stone); margin-top: 0.3rem; }
+
+  @media (max-width: 60rem) {
+    .approche-grid { grid-template-columns: repeat(2, 1fr); gap: 1.8rem; }
+    .equipe-grid { grid-template-columns: repeat(2, 1fr); gap: 1.8rem; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(-n+2) { border-bottom: var(--rule); }
+    .stat:nth-child(odd) { border-left: 0; }
+  }
+  @media (max-width: 40rem) {
+    .manifeste { grid-template-columns: 1fr; gap: 1rem; }
+  }
+  @media (max-width: 30rem) {
+    .approche-grid, .equipe-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+    .stat { border-left: 0; border-top: var(--rule); }
+    .stat:first-child { border-top: 0; }
   }
 </style>

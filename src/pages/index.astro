@@ -1,79 +1,47 @@
 ---
 import Base from '../layouts/Base.astro';
-import Monogram from '../components/Monogram.astro';
-import ArticleCard from '../components/ArticleCard.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import { getAccueil } from '../lib/site';
 import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 
 const locale = getLocale(Astro.url);
 const t = useTranslations(locale);
 const L = (p: string) => localizePath(p, locale);
 
-const { manifesteTexte } = await getAccueil();
-
 const projetsAll = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
-// Projet à la une = le premier (ordre manuel, sinon plus récent)
 const featured = projetsAll[0] ?? null;
+const projetsRecents = projetsAll.slice(0, 3);
 
-const matieres = ['chanvre', 'pise', 'bois'] as const;
-const matiere = featured
-  ? matieres[[...featured.id].reduce((a, c) => a + c.charCodeAt(0), 0) % matieres.length]
-  : 'pise';
-
-// Le Journal est le cœur de l'accueil : on en montre 4.
 const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, 4);
+
+// Rubrique → libellé court majuscule (comme le design)
+const RUB: Record<string, string> = {
+  chantiers: 'Chantier', reflexions: 'Réflexion', presse: 'Presse', distinctions: 'Distinction',
+};
+// Date courte JJ.MM.AA
+const dShort = (d: Date) =>
+  `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getFullYear()).slice(-2)}`;
+
+// 3 axonométries (reprises du design) — vignettes des projets récents
+const AXONO = [
+  `<svg viewBox="-53.568 -72 96.744 126" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="31.2,18.0 -10.4,42.0 -10.4,-6.0 31.2,-30.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 -10.4,42.0 -10.4,-6.0 -41.6,-24.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-48.0 31.2,-30.0 10.4,-42.0 -20.8,-60.0" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,-24.0 -10.4,-6.0 10.4,-42.0 -20.8,-60.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="31.2,-30.0 -10.4,-6.0 10.4,-42.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><line x1="-20.784" y1="-60" x2="10.392" y2="-42" stroke="#2A2620" stroke-width="1.1" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="-53.568 -60 159.096 150" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="93.5,54.0 52.0,78.0 52.0,54.0 93.5,30.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 52.0,78.0 52.0,54.0 -41.6,0.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-24.0 93.5,30.0 72.7,6.0 -20.8,-48.0" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,0.0 52.0,54.0 72.7,6.0 -20.8,-48.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="93.5,30.0 52.0,54.0 72.7,6.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><line x1="-20.784" y1="-48" x2="72.744" y2="6" stroke="#2A2620" stroke-width="1.1" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="-53.568 -48 167.41 144" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block;overflow:visible"><polygon points="83.1,48.0 41.6,72.0 41.6,36.0 83.1,12.0" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="-41.6,24.0 41.6,72.0 41.6,36.0 -41.6,-12.0" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="0.0,-36.0 83.1,12.0 41.6,36.0 -41.6,-12.0" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="101.8,68.4 74.8,84.0 74.8,55.2 101.8,39.6" fill="var(--ph2,#D8CCB7)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="47.8,68.4 74.8,84.0 74.8,55.2 47.8,39.6" fill="var(--ph1,#E7DECF)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/><polygon points="74.8,24.0 101.8,39.6 74.8,55.2 47.8,39.6" fill="var(--surface,#F4EFE6)" stroke="#2A2620" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
+];
 ---
 <Base>
-  <!-- ——— HERO : la thèse, compacte ——— -->
-  <section class="hero">
-    <div class="container hero-grid">
-      <div class="hero-text">
-        <p class="eyebrow">Agence d'architecture · Paris&nbsp;—&nbsp;Normandie</p>
-        <h1>Réparer, transformer, <em>prolonger</em> le déjà-là.</h1>
-        <p class="lede">
-          Une agence pour une architecture sobre — ancrée dans la matière,
-          attentive au vivant, au service des collectivités et de l'habitat.
-        </p>
-        <a class="hero-cta plain" href={L('/journal')}>
-          <span>{t('cta.lireJournal')}</span><span class="arr" aria-hidden="true">→</span>
-        </a>
-      </div>
-
-      <div class="seal-col">
-        <Monogram variant="seal" size={210} title="Sceau de l'Agence L&L" />
-      </div>
-    </div>
-  </section>
-
-  <!-- ——— AU JOURNAL (le cœur de l'accueil) ——— -->
-  <section class="section container journal-home" id="journal" aria-labelledby="journal-h">
-    <div class="section-head">
-      <h2 id="journal-h">{t('home.auJournal')}</h2>
-      <a class="section-link plain" href={L('/journal')}>
-        <span>{t('cta.toutVoir')}</span><span class="arr" aria-hidden="true">→</span>
-      </a>
-    </div>
-
-    {articles.length > 0 ? (
-      <div class="journal-grid">
-        {articles.map((article) => <ArticleCard article={article} />)}
-      </div>
-    ) : (
-      <p class="lede">{t('journal.bientot')}</p>
-    )}
-  </section>
-
   <!-- ——— PROJET À LA UNE ——— -->
   {featured && (
     <section class="section container featured-sec" aria-labelledby="featured-h">
-      <p class="eyebrow">{t('home.projetUne')}</p>
+      <div class="eyebrow-row">
+        <span class="eyebrow">{t('home.projetUne')}</span>
+        <a class="row-link plain" href={L('/projets')}>{t('home.tousProjets')} →</a>
+      </div>
+
       <a class="featured plain" href={L(`/projets/${featured.id}`)}>
-        <span class="f-num num" aria-hidden="true">N°{featured.data.numero}</span>
         <div class="featured-visual">
           {featured.data.couverture ? (
             <Image
@@ -83,172 +51,180 @@ const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
               sizes="(max-width: 82rem) 100vw, 1240px"
             />
           ) : (
-            <div class={`featured-ph mat mat-${matiere}`} aria-hidden="true">
-              <span class="ph-cap">{t('placeholder.projet')}</span>
+            <div class="ph" aria-hidden="true">
+              <span class="ph-cap">[ {t('placeholder.photoTag')} ]</span>
             </div>
           )}
         </div>
         <div class="featured-cap">
           <span id="featured-h" class="f-titre">{featured.data.titre}</span>
-          <span class="f-meta meta">{featured.data.lieu} · {featured.data.annee} →</span>
+          <span class="f-meta">{featured.data.lieu} · {featured.data.annee}</span>
         </div>
       </a>
     </section>
   )}
 
-  <!-- ——— MANIFESTE ——— -->
-  <section class="section container manifeste" aria-labelledby="manifeste-h">
-    <p class="eyebrow m-label">{t('home.lagence')}</p>
-    <div class="m-body">
-      <h2 id="manifeste-h">
-        Nous partons toujours de l'existant — du bâti, du sol, du climat — pour
-        faire mieux avec <em>moins</em>.
-      </h2>
-      <p>{manifesteTexte}</p>
-      <a class="m-link" href={L('/agence')}>{t('cta.enSavoirPlus')} →</a>
-    </div>
-  </section>
+  <!-- ——— AU JOURNAL ——— -->
+  {articles.length > 0 && (
+    <section class="section container" id="journal" aria-labelledby="journal-h">
+      <div class="head-row">
+        <h2 id="journal-h">{t('home.auJournal')}</h2>
+        <a class="row-link plain" href={L('/journal')}>{t('cta.toutVoir')} →</a>
+      </div>
 
-  <!-- ——— CONTACT ——— -->
-  <section class="section container contact" id="contact" aria-labelledby="contact-h">
-    <div class="contact-inner">
-      <div>
-        <h2 id="contact-h">Un lieu, un programme, une <em>intention</em>&nbsp;?</h2>
-        <a class="contact-cta plain" href={L('/contact')}>
-          <span>{t('cta.ecrire')}</span><span class="arr" aria-hidden="true">→</span>
-        </a>
+      <div class="journal-grid">
+        {articles.map((a) => (
+          <a class="jcard plain" href={L(`/journal/${a.id}`)}>
+            <div class="jcard-visual">
+              {a.data.image ? (
+                <Image src={a.data.image} alt={a.data.titre} widths={[320, 480]} sizes="(max-width: 52rem) 100vw, 30vw" />
+              ) : (
+                <div class="ph" aria-hidden="true"></div>
+              )}
+            </div>
+            <p class="jcard-meta">
+              <span class="rub">{RUB[a.data.rubrique] ?? a.data.rubrique}</span>
+              <span class="dot" aria-hidden="true">·</span>
+              <time datetime={a.data.date.toISOString()}>{dShort(a.data.date)}</time>
+            </p>
+            <h3 class="jcard-titre">{a.data.titre}</h3>
+            <p class="jcard-extrait">{a.data.extrait}</p>
+          </a>
+        ))}
       </div>
-      <div class="contact-side">
-        <strong>Agence L&amp;L</strong><br />
-        Julien&nbsp;&amp;&nbsp;Zoé Lenglet<br />
-        Architectes DE · HMONP<br />
-        Paris&nbsp;—&nbsp;Normandie<br />
-        <a href="mailto:contact@agence-ll.fr">contact@agence-ll.fr</a>
+    </section>
+  )}
+
+  <!-- ——— PROJETS RÉCENTS ——— -->
+  {projetsRecents.length > 0 && (
+    <section class="section container" aria-labelledby="recents-h">
+      <div class="head-row">
+        <h2 id="recents-h">{t('home.projetsRecents')}</h2>
+        <a class="row-link plain" href={L('/projets')}>{t('home.voirGrille')} →</a>
       </div>
-    </div>
-  </section>
+
+      <div class="recents-grid">
+        {projetsRecents.map((p, i) => (
+          <a class="rcard plain" href={L(`/projets/${p.id}`)}>
+            <div class="rcard-axo" aria-hidden="true" set:html={AXONO[i % AXONO.length]} />
+            <h3 class="rcard-titre">{p.data.titre}</h3>
+            <p class="rcard-meta">{p.data.lieu} · {p.data.annee}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
 </Base>
 
 <style>
-  /* HERO */
-  .hero { padding-block: clamp(2.4rem, 6vw, 4.5rem) clamp(1.5rem, 4vw, 2.5rem); }
-  .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-    gap: clamp(1.5rem, 4vw, 3rem);
-    align-items: center;
+  /* Lignes d'en-tête de section */
+  .eyebrow-row, .head-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: var(--space-m); margin-bottom: clamp(1.2rem, 3vw, 1.8rem);
   }
-  .hero h1 { margin-top: 0.9rem; max-width: 14ch; }
-  .hero .lede { max-width: 34ch; margin-top: 1.5rem; }
-  .hero-cta {
-    display: inline-flex; align-items: center; gap: 0.6ch;
-    margin-top: 1.9rem;
-    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--ink);
-    border-bottom: 1.5px solid var(--ink);
-    padding-bottom: 0.25rem;
-    transition: gap 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease);
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--terracotta);
   }
-  .hero-cta .arr { color: var(--seal); transition: transform 0.25s var(--ease); }
-  .hero-cta:hover { gap: 1.1ch; border-color: var(--seal); }
-  .hero-cta:hover .arr { transform: translateX(3px); }
+  .head-row h2 {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: clamp(1.8rem, 3.4vw, 2.3rem); line-height: 1.1; color: var(--ink);
+  }
+  .row-link {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em;
+    color: var(--stone); white-space: nowrap; transition: color 0.2s var(--ease);
+  }
+  .row-link:hover { color: var(--ink); }
 
-  .seal-col { display: flex; justify-content: flex-end; color: var(--seal); }
-  .seal-col :global(svg) {
-    width: clamp(160px, 20vw, 220px); height: auto;
-    animation: press 0.7s var(--ease) both 0.15s;
-    transform-origin: center;
+  /* Placeholder tramé (diagonale) — comme le design */
+  .ph {
+    width: 100%; height: 100%; display: grid; place-items: center;
+    background: repeating-linear-gradient(135deg, var(--ph1, #E7DFD0) 0 13px, var(--surface, #EFE9DE) 13px 26px);
   }
-  @keyframes press {
-    from { opacity: 0; transform: scale(1.06) rotate(-3deg); }
-    to   { opacity: 1; transform: scale(1) rotate(0); }
+  .ph-cap {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+    color: var(--stone); background: rgba(246, 242, 235, 0.72); padding: 0.3rem 0.6rem;
   }
 
   /* PROJET À LA UNE */
-  .featured-sec { padding-block: clamp(1.5rem, 4vw, 3rem); }
-  .featured-sec .eyebrow { margin-bottom: var(--space-s); }
-  .featured { position: relative; display: block; }
-  .f-num { position: absolute; top: -24px; left: -10px; z-index: 3; font-size: clamp(2.2rem, 4vw, 3rem); }
+  .featured-sec { padding-top: clamp(2rem, 5vw, 3.4rem); }
+  .featured { display: block; }
   .featured-visual {
-    aspect-ratio: 21 / 9; min-height: 240px; overflow: hidden; border: var(--rule);
-    transition: border-color 0.25s var(--ease);
+    position: relative; aspect-ratio: 16 / 9; overflow: hidden;
+    border: var(--rule); transition: border-color 0.25s var(--ease);
   }
   .featured-visual :global(img) {
-    width: 100%; height: 100%; object-fit: cover; filter: saturate(0.92);
-    transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.6s var(--ease);
   }
+  .featured-visual .ph { place-items: end start; padding: 1rem; }
   .featured:hover .featured-visual { border-color: var(--terracotta); }
-  .featured:hover .featured-visual :global(img) { transform: scale(1.02); filter: saturate(1); }
-  .featured-ph { width: 100%; height: 100%; display: grid; place-items: center; }
-  .featured-ph .ph-cap {
-    position: relative; z-index: 2;
-    font-family: var(--font-mono); font-size: var(--step--1); color: var(--paper);
-    background: rgba(28, 26, 23, 0.55); padding: 0.3rem 0.7rem; letter-spacing: 0.04em;
-  }
+  .featured:hover .featured-visual :global(img) { transform: scale(1.02); }
   .featured-cap {
     display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-    gap: var(--space-s); margin-top: var(--space-s);
+    gap: var(--space-s); margin-top: var(--space-m);
   }
   .f-titre {
-    font-family: var(--font-display); font-style: italic; font-size: var(--step-2);
-    color: var(--ink); transition: color 0.2s var(--ease);
+    font-family: var(--font-display); font-style: italic; font-weight: 500;
+    font-size: clamp(1.5rem, 2.8vw, 2rem); color: var(--ink);
+    transition: color 0.2s var(--ease);
   }
   .featured:hover .f-titre { color: var(--terracotta-deep); }
-
-  /* MANIFESTE */
-  .manifeste {
-    display: grid; grid-template-columns: 180px 1fr; gap: clamp(1.5rem, 4vw, 2.5rem);
-    border-top: var(--rule); border-bottom: var(--rule);
-  }
-  .m-label { padding-top: 0.4rem; }
-  .m-body h2 { font-size: var(--step-2); max-width: 24ch; }
-  .m-body p { margin-top: var(--space-m); color: var(--ink-soft); font-size: var(--step-1); max-width: 52ch; }
-  .m-link {
-    display: inline-block; margin-top: var(--space-m);
-    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.04em;
+  .f-meta {
+    font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.05em; color: var(--stone);
   }
 
-  /* AU JOURNAL — le cœur de l'accueil */
+  /* AU JOURNAL */
   .journal-grid {
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(2rem, 4vw, 3rem) clamp(1.6rem, 4vw, 2.6rem);
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.6rem, 3.5vw, 2.6rem) clamp(1.4rem, 3vw, 2.2rem);
+  }
+  .jcard-visual { aspect-ratio: 3 / 2; overflow: hidden; border: var(--rule); margin-bottom: 0.9rem; }
+  .jcard-visual :global(img) { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s var(--ease); }
+  .jcard:hover .jcard-visual :global(img) { transform: scale(1.03); }
+  .jcard-meta {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--stone); display: flex; gap: 0.6ch; align-items: center;
+  }
+  .jcard-meta .rub { color: var(--terracotta); }
+  .jcard-meta .dot { opacity: 0.5; }
+  .jcard-titre {
+    font-family: var(--font-display); font-weight: 500; font-size: 1.4rem; line-height: 1.15;
+    color: var(--ink); margin-top: 0.5rem; transition: color 0.2s var(--ease);
+  }
+  .jcard:hover .jcard-titre { color: var(--terracotta-deep); }
+  .jcard-extrait {
+    font-family: var(--font-body); font-size: 0.92rem; line-height: 1.5;
+    color: var(--ink-soft); margin-top: 0.5rem; max-width: 42ch;
   }
 
-  /* CONTACT */
-  .contact-inner {
-    border-top: 1px solid var(--ink);
-    padding-top: clamp(2rem, 5vw, 3.5rem);
-    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: clamp(1.5rem, 4vw, 3rem); align-items: end;
+  /* PROJETS RÉCENTS */
+  .recents-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.6rem, 4vw, 3rem);
   }
-  .contact-inner h2 {
-    font-size: var(--step-3); line-height: 1.05; max-width: 16ch;
-    font-variation-settings: 'opsz' 120, 'SOFT' 30;
+  .rcard-axo {
+    aspect-ratio: 3 / 2; display: grid; place-items: center; padding: 1rem 0;
+    --ph1: #E7DECF; --ph2: #D8CCB7; --surface: #F4EFE6;
+    transition: transform 0.4s var(--ease);
   }
-  .contact-cta {
-    display: inline-flex; align-items: center; gap: 0.6ch; margin-top: 1.6rem;
-    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.05em;
-    text-transform: uppercase;
-    border-bottom: 1.5px solid var(--ink); padding-bottom: 0.3rem;
-    transition: gap 0.25s var(--ease), border-color 0.25s var(--ease);
+  .rcard:hover .rcard-axo { transform: translateY(-4px); }
+  .rcard-titre {
+    font-family: var(--font-display); font-weight: 500; font-size: 1.4rem; line-height: 1.15;
+    color: var(--ink); margin-top: 0.4rem; transition: color 0.2s var(--ease);
   }
-  .contact-cta .arr { color: var(--seal); }
-  .contact-cta:hover { gap: 1.1ch; border-color: var(--seal); }
-  .contact-side {
-    font-family: var(--font-mono); font-size: var(--step--1); line-height: 1.9;
-    color: var(--ink-soft); letter-spacing: 0.03em;
+  .rcard:hover .rcard-titre { color: var(--terracotta-deep); }
+  .rcard-meta {
+    font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.05em;
+    color: var(--stone); margin-top: 0.3rem;
   }
-  .contact-side strong { color: var(--ink); font-weight: 600; }
 
   /* Responsive */
-  @media (max-width: 56rem) {
-    .hero-grid { grid-template-columns: 1fr; }
-    .seal-col { justify-content: flex-start; order: -1; }
-    .manifeste { grid-template-columns: 1fr; gap: var(--space-s); }
-    .journal-grid { grid-template-columns: 1fr; gap: 2.6rem; }
-    .contact-inner { grid-template-columns: 1fr; align-items: start; }
+  @media (max-width: 52rem) {
+    .journal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .recents-grid { grid-template-columns: 1fr; gap: 2rem; }
   }
-  @media (max-width: 38rem) {
-    .featured-visual { aspect-ratio: 4 / 3; }
+  @media (max-width: 34rem) {
+    .journal-grid { grid-template-columns: 1fr; }
   }
 </style>
