@@ -17,6 +17,9 @@ const projets = defineCollection({
       statut: z.enum(['concours', 'étude', 'chantier', 'livré']).default('étude'),
       surface: z.string().optional(), // ex. "1 240 m²"
       maitrise_ouvrage: z.string().optional(),
+      mission: z.string().optional(),   // ex. "Mission complète", "Concours lauréat"
+      equipe: z.string().optional(),    // ex. "L&L · BET Inex"
+      materiaux: z.string().optional(), // ex. "Ossature bois · Paille · Triple vitrage"
       // accroche courte (1 phrase) utilisée dans l'index et les listes
       resume: z.string(),
       // Image de couverture — FACULTATIVE pour que le site build sans aucune image.

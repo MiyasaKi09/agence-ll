@@ -30,6 +30,9 @@ const fiche = [
   [t('fiche.programme'), d.programme],
   [t('fiche.surface'), d.surface],
   [t('fiche.mo'), d.maitrise_ouvrage],
+  ['Mission', (d as any).mission],
+  ['Équipe', (d as any).equipe],
+  ['Matériaux', (d as any).materiaux],
   [t('fiche.statut'), t(`statut.${d.statut}` as UIKey)],
 ].filter(([, v]) => Boolean(v)) as [string, string][];
 
@@ -69,7 +72,17 @@ const teinte = teinteFor(entry.id);
           <span class="aside-h">Plan de situation</span>
           <div class="plan-box">
             <span class="compass" aria-hidden="true">↑<br />N</span>
-            <Axono i={axIndex(entry)} teinte={teinte} class="plan-axo" />
+            <svg class="plan-svg" viewBox="0 0 320 240" role="img" aria-label="Plan de situation" preserveAspectRatio="xMidYMid meet">
+              <rect width="320" height="240" fill="var(--ph1)" />
+              <!-- parcelles voisines -->
+              <rect x="22" y="22" width="74" height="74" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="138" y="22" width="78" height="58" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="234" y="22" width="64" height="58" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="22" y="144" width="74" height="74" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <rect x="234" y="150" width="64" height="68" fill="var(--paper)" stroke="var(--stone-light)" stroke-width="1.4" />
+              <!-- parcelle du projet (surlignée dans la teinte) -->
+              <rect x="138" y="138" width="78" height="80" fill="var(--teinte-accent, var(--terracotta))" stroke="var(--ink)" stroke-width="1.6" />
+            </svg>
           </div>
         </div>
 
@@ -167,10 +180,10 @@ const teinte = teinteFor(entry.id);
     color: var(--stone); display: block; margin-bottom: 0.6rem;
   }
   .plan-box {
-    position: relative; border: var(--rule); aspect-ratio: 4 / 3; display: grid; place-items: center;
-    background: var(--paper-deep); margin-bottom: 1.6rem;
+    position: relative; border: var(--rule); aspect-ratio: 4 / 3; overflow: hidden;
+    background: var(--surface); margin-bottom: 1.6rem;
   }
-  .plan-box :global(.plan-axo) { width: 60%; }
+  .plan-svg { width: 100%; height: 100%; display: block; }
   .compass {
     position: absolute; top: 0.5rem; right: 0.6rem; font-family: var(--font-mono);
     font-size: 0.6rem; line-height: 1; color: var(--stone); text-align: center;
