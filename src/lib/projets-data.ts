@@ -63,18 +63,19 @@ export function deptFromLieu(lieu: string): string {
   return '';
 }
 
-/** Métadonnées d'un projet (avec fallback déduit du contenu). */
+/** Métadonnées d'un projet. Une `categorie` explicite (select Tina/frontmatter)
+ *  l'emporte sur la déduction ; le massing reste celui de PROJETS_META. */
 export function metaFor(
   id: string,
-  fallback: { programme: string; tags?: string[]; lieu: string },
+  fallback: { programme: string; tags?: string[]; lieu: string; categorie?: Cat },
 ): ProjetMeta {
   const explicit = PROJETS_META[id];
-  if (explicit) return explicit;
-  return {
+  const base: ProjetMeta = explicit ?? {
     cat: catFromText(fallback.programme, fallback.tags),
     dept: deptFromLieu(fallback.lieu),
     axo: [{ x: 0, y: 0, w: 4, d: 4, h: 4, roof: 2 }],
   };
+  return fallback.categorie ? { ...base, cat: fallback.categorie } : base;
 }
 
 // — Palettes par catégorie (catTheme du prototype) ————————————————————
