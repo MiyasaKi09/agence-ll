@@ -30,6 +30,8 @@ const projets = defineCollection({
       // colocalisé (couverture.jpg), soit un chemin média (/uploads/…). La
       // résolution/optimisation se fait au rendu (src/lib/projet-images.ts).
       couverture: z.string().optional(),
+      // image (SVG/PNG) qui remplace le dessin axonométrique généré — facultative
+      axonometrie: z.string().optional(),
       galerie: z
         .array(
           z.object({

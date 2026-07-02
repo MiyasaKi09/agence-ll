@@ -67,6 +67,10 @@ const projets: Collection = {
       description: 'Image de couverture (facultatif).',
     },
     {
+      type: 'image', name: 'axonometrie', label: 'Axonométrie (image)',
+      description: 'SVG ou PNG qui REMPLACE le dessin axonométrique généré (grille, accueil, vignettes). Laisser vide pour garder le dessin automatique.',
+    },
+    {
       type: 'object', name: 'galerie', label: 'Galerie', list: true,
       description: 'Toutes les images s’affichent ; cochez « carrousel » pour mettre une image dans le carrousel en tête de fiche.',
       ui: { itemProps: (item) => ({ label: item?.legende || 'Image' }) },

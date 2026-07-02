@@ -4,6 +4,7 @@ import Axono from '../../components/Axono.astro';
 import { getCollection } from 'astro:content';
 import { teinteFor } from '../../lib/teinte';
 import { metaFor, DEPT_POS, DEPT_NAMES, FRANCE_PATH, FRANCE_VIEWBOX, type Cat } from '../../lib/projets-data';
+import { resolveContentImage } from '../../lib/projet-images';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 
 const locale = getLocale(Astro.url);
@@ -13,9 +14,11 @@ const L = (p: string) => localizePath(p, locale);
 const projetsRaw = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
 
-// Enrichit chaque projet de sa catégorie + département (cf. projets-data.ts)
-const projets = projetsRaw.map((p) => {
-  const m = metaFor(p.id, { programme: p.data.programme, tags: p.data.tags, lieu: p.data.lieu });
+// Enrichit chaque projet de sa catégorie + département (cf. projets-data.ts).
+// `axo` : image d'axonométrie uploadée (remplace le dessin généré si présente).
+const projets = await Promise.all(projetsRaw.map(async (p) => {
+  const m = metaFor(p.id, { programme: p.data.programme, tags: p.data.tags, lieu: p.data.lieu, categorie: p.data.categorie });
+  const axo = await resolveContentImage('projets', p.id, p.data.axonometrie, { width: 640 });
   return {
     id: p.id,
     titre: p.data.titre,
@@ -24,9 +27,10 @@ const projets = projetsRaw.map((p) => {
     annee: p.data.annee,
     cat: m.cat,
     dept: m.dept,
+    axoSrc: axo?.src,
     href: L(`/projets/${p.id}`),
   };
-});
+}));
 
 const filters: { key: 'tous' | Cat; label: string }[] = [
   { key: 'tous', label: 'Tous' },
@@ -40,9 +44,13 @@ const filters: { key: 'tous' | Cat; label: string }[] = [
 // comme le prototype) ; on ne place une pastille que pour les depts cartographiés.
 const deptCounts: Record<string, number> = {};
 for (const p of projets) if (p.dept) deptCounts[p.dept] = (deptCounts[p.dept] ?? 0) + 1;
+// pastilles limitées au cadre de la carte (grand Nord) — un département hors
+// zone reste filtrable via les cartes, il n'a juste pas de pastille.
+const [, , VB_W, VB_H] = FRANCE_VIEWBOX.split(' ').map(Number);
 const mapDepts = Object.keys(DEPT_POS)
   .filter((d) => deptCounts[d] > 0)
-  .map((d) => ({ code: d, name: DEPT_NAMES[d] ?? d, count: deptCounts[d], ...DEPT_POS[d] }));
+  .map((d) => ({ code: d, name: DEPT_NAMES[d] ?? d, count: deptCounts[d], ...DEPT_POS[d] }))
+  .filter((d) => d.x >= -4 && d.x <= VB_W + 4 && d.y >= -4 && d.y <= VB_H + 4);
 ---
 <Base
   title="Projets — Agence L&L"
@@ -66,7 +74,7 @@ const mapDepts = Object.keys(DEPT_POS)
         </div>
         <div class="sort-row">
           <button class="sort" id="sort-toggle" type="button" data-sort="recent">Trier : plus récents ↓</button>
-          <button class="zone" id="loc-reset" type="button" data-active="false" disabled>Toute la France</button>
+          <button class="zone" id="loc-reset" type="button" data-active="false" disabled>Tout le territoire</button>
         </div>
       </div>
 
@@ -98,7 +106,7 @@ const mapDepts = Object.keys(DEPT_POS)
             data-titre={p.titre}
             data-meta={`${p.programme} · ${p.lieu} · ${p.annee}`}
           >
-            <Axono id={p.id} teinte={teinteFor(p.id)} class="pcard-axo" />
+            <Axono id={p.id} src={p.axoSrc} teinte={teinteFor(p.id)} class="pcard-axo" />
             <h2 class="pcard-titre">{p.titre}</h2>
           </a>
         ))}
@@ -168,7 +176,7 @@ const mapDepts = Object.keys(DEPT_POS)
         locBtn.disabled = !active;
         locBtn.textContent = active
           ? `Lieu : ${deptName[state.dept] || state.dept}   ✕`
-          : 'Toute la France';
+          : 'Tout le territoire';
       }
       apply();
     }

@@ -8,7 +8,7 @@ import { projetStaticPaths } from '../../lib/paths';
 import { getProjet } from '../../lib/tina-data';
 import { teinteForCat, teinteFor, teintePageVars } from '../../lib/teinte';
 import { metaFor, type Cat } from '../../lib/projets-data';
-import { resolveProjetImage } from '../../lib/projet-images';
+import { resolveProjetImage, resolveContentImage } from '../../lib/projet-images';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 
 export const getStaticPaths = projetStaticPaths;
@@ -35,6 +35,10 @@ const all = (await getCollection('projets', ({ data }) => !data.brouillon))
 const idx = all.findIndex((e) => e.id === slug);
 const prev = idx > 0 ? all[idx - 1] : null;
 const next = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null;
+const axoSrcOf = async (e: typeof all[number] | null) =>
+  e ? (await resolveContentImage('projets', e.id, e.data.axonometrie, { width: 320 }))?.src : undefined;
+const prevAxoSrc = await axoSrcOf(prev);
+const nextAxoSrc = await axoSrcOf(next);
 
 // Carrousel : images cochées « carrousel » (sinon toute la galerie, sinon épreuves).
 const ANGLES = [135, 45, 90, 160];
@@ -64,7 +68,7 @@ const meta = `${p.lieu ?? ''} · ${p.annee ?? ''}`;
         <div class="pn">
           {prev && (
             <a class="plain pn-a" href={L(`/projets/${prev.id}`)}>
-              <Axono id={prev.id} teinte={teinteFor(prev.id)} class="pn-axo" />
+              <Axono id={prev.id} src={prevAxoSrc} teinte={teinteFor(prev.id)} class="pn-axo" />
               <span class="pn-txt"><span class="pn-l">← Précédent</span><span class="pn-t">{prev.data.titre}</span></span>
             </a>
           )}
@@ -73,7 +77,7 @@ const meta = `${p.lieu ?? ''} · ${p.annee ?? ''}`;
           {next && (
             <a class="plain pn-a" href={L(`/projets/${next.id}`)}>
               <span class="pn-txt"><span class="pn-l">Suivant →</span><span class="pn-t">{next.data.titre}</span></span>
-              <Axono id={next.id} teinte={teinteFor(next.id)} class="pn-axo" />
+              <Axono id={next.id} src={nextAxoSrc} teinte={teinteFor(next.id)} class="pn-axo" />
             </a>
           )}
         </div>

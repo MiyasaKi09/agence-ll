@@ -28,6 +28,9 @@ const hero = await resolveContentImage('journal', slug, a.image, { width: 1400 }
 
 const lie = a.projetLie ?? null;
 const lieSlug = refSlug(lie);
+const lieAxoSrc = lie
+  ? (await resolveContentImage('projets', lieSlug, lie.axonometrie, { width: 320 }))?.src
+  : undefined;
 ---
 <header class="art-head">
   <p class="meta-line">
@@ -59,7 +62,7 @@ const lieSlug = refSlug(lie);
 
 {lie && (
   <a class="projet-lie plain" href={L(`/projets/${lieSlug}`)} data-tina-field={tinaField(a, 'projetLie')}>
-    <Axono id={lieSlug} teinte={teinteFor(lieSlug)} class="pl-axo" />
+    <Axono id={lieSlug} src={lieAxoSrc} teinte={teinteFor(lieSlug)} class="pl-axo" />
     <span class="pl-body">
       <span class="pl-label">{t('article.related')}</span>
       <span class="pl-titre">{lie.titre}</span>

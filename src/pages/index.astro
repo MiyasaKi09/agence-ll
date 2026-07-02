@@ -34,7 +34,12 @@ if (!vedette) {
 
 const projetsAll = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
-const projetsRecents = projetsAll.slice(0, 3);
+const projetsRecents = await Promise.all(
+  projetsAll.slice(0, 3).map(async (p) => ({
+    ...p,
+    axoSrc: (await resolveContentImage('projets', p.id, p.data.axonometrie, { width: 640 }))?.src,
+  })),
+);
 
 const articlesRaw = (await getCollection('journal', ({ data }) => !data.brouillon))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
@@ -112,7 +117,7 @@ const dShort = (d: Date) =>
       <div class="recents-grid">
         {projetsRecents.map((p) => (
           <a class="rcard plain" href={L(`/projets/${p.id}`)}>
-            <Axono id={p.id} teinte={teinteFor(p.id)} class="rcard-axo" />
+            <Axono id={p.id} src={p.axoSrc} teinte={teinteFor(p.id)} class="rcard-axo" />
             <h3 class="rcard-titre">{p.data.titre}</h3>
             <p class="rcard-meta">{p.data.lieu} · {p.data.annee}</p>
           </a>
