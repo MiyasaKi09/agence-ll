@@ -10,12 +10,14 @@ import { localizePath, type Locale } from '../../i18n/utils';
 
 interface Props {
   accueil: any;
+  /** projet affiché — la référence, ou le repli calculé par la page */
+  vedette?: any;
   lang?: string;
 }
-const { accueil, lang = 'fr' } = Astro.props;
+const { accueil, vedette: vedetteProp, lang = 'fr' } = Astro.props;
 const locale = (lang === 'en' ? 'en' : 'fr') as Locale;
 
-const vedette = accueil?.projetVedette ?? null;
+const vedette = vedetteProp ?? accueil?.projetVedette ?? null;
 const slug = refSlug(vedette);
 const cover = vedette ? await resolveProjetImage(slug, vedette.couverture, { width: 1600 }) : null;
 const href = slug ? localizePath(`/projets/${slug}`, locale) : localizePath('/projets', locale);
