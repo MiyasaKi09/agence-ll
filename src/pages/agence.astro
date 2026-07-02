@@ -1,5 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
+import TinaIsland from '@tinacms/astro/TinaIsland.astro';
+import EquipeListe from '../components/islands/EquipeListe.astro';
+import { getEquipe } from '../lib/tina-data';
 
 const approche = [
   { n: '01', titre: 'Diagnostiquer', desc: "Comprendre l'existant : structure, énergie, usages." },
@@ -13,12 +16,13 @@ const stats = [
   { v: '−65%', l: 'Conso. moyenne' },
   { v: '9', l: 'Architectes & ingénieurs' },
 ];
-const equipe = [
-  { nom: 'Lucie Lambert', role: 'Architecte cofondatrice' },
-  { nom: 'Louis Lefèvre', role: 'Architecte cofondateur' },
-  { nom: 'Inès Maréchal', role: 'Cheffe de projet' },
-  { nom: 'Karim Bensaïd', role: 'Ingénieur bois & structure' },
-];
+
+// L'équipe vit dans la collection Tina « equipe » : ajouter/supprimer une
+// personne se fait depuis l'admin, l'affichage est éditable au clic.
+const equipeRes = await getEquipe();
+const membres = (equipeRes?.data?.equipeConnection?.edges ?? [])
+  .map((e: any) => e?.node)
+  .filter(Boolean);
 ---
 <Base
   title="L’agence — Agence L&L"
@@ -67,18 +71,12 @@ const equipe = [
       ))}
     </div>
 
-    <!-- L’équipe -->
+    <!-- L’équipe (îlot Tina : ajouter/supprimer une personne via l'admin) -->
     <div class="equipe">
       <h2>L’équipe</h2>
-      <div class="equipe-grid">
-        {equipe.map((m) => (
-          <div class="membre">
-            <div class="portrait ph" aria-hidden="true"></div>
-            <h3>{m.nom}</h3>
-            <p>{m.role}</p>
-          </div>
-        ))}
-      </div>
+      <TinaIsland name="equipe" wrapper={{ tag: 'div', className: 'equipe-island' }}>
+        <EquipeListe membres={membres} />
+      </TinaIsland>
     </div>
   </section>
 </Base>
@@ -142,16 +140,11 @@ const equipe = [
     text-transform: uppercase; color: var(--stone); margin-top: 0.6rem;
   }
 
-  /* L’équipe */
+  /* L’équipe — la grille elle-même vit dans l'îlot EquipeListe */
   .equipe { margin-top: clamp(2.5rem, 6vw, 4rem); }
-  .equipe-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1.4rem, 3vw, 2.2rem); }
-  .portrait { aspect-ratio: 1 / 1; border: var(--rule); }
-  .membre h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; margin-top: 0.8rem; color: var(--ink); }
-  .membre p { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.04em; color: var(--stone); margin-top: 0.3rem; }
 
   @media (max-width: 60rem) {
     .approche-grid { grid-template-columns: repeat(2, 1fr); gap: 1.8rem; }
-    .equipe-grid { grid-template-columns: repeat(2, 1fr); gap: 1.8rem; }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .stat:nth-child(-n+2) { border-bottom: var(--rule); }
     .stat:nth-child(odd) { border-left: 0; }
@@ -160,7 +153,7 @@ const equipe = [
     .manifeste { grid-template-columns: 1fr; gap: 1rem; }
   }
   @media (max-width: 30rem) {
-    .approche-grid, .equipe-grid { grid-template-columns: 1fr; }
+    .approche-grid { grid-template-columns: 1fr; }
     .stats { grid-template-columns: 1fr; }
     .stat { border-left: 0; border-top: var(--rule); }
     .stat:first-child { border-top: 0; }

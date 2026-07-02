@@ -5,9 +5,9 @@
 `@tinacms/astro` (bridge vanilla-JS) : **aucun React n'est embarqué sur les
 pages publiques** — elles restent statiques et rapides.
 
-> ⚠️ **État : 1ʳᵉ collection câblée (projets), en attente de validation.**
-> Les autres collections (accueil/vedette, articles, équipe) suivront une fois
-> les projets validés.
+> ✅ **État : câblage complet.** Quatre contenus éditables : **projets**,
+> **articles du Journal**, **équipe**, et le **projet vedette** de l'accueil
+> (singleton avec référence).
 
 ## Démarrage (dev local — aucun identifiant requis)
 
@@ -45,9 +45,9 @@ ne **persiste** pas tant que les identifiants cloud ne sont pas posés.
 > « Index version … no longer supported », c'est un **ré-index** à lancer
 > depuis app.tina.io (indépendant du code).
 
-## Ce qui est éditable (collection « projets »)
+## Ce qui est éditable
 
-Fiche au template fixe, nombre de photos variable :
+**Projets** — fiche au template fixe, nombre de photos variable :
 titre · numéro · année · **catégorie** (select, pilote la couleur de la page et
 les filtres) · programme · client (maîtrise d'ouvrage) · localisation · statut ·
 surface · mission · équipe · matériaux · résumé · **couverture** · **galerie**
@@ -58,6 +58,19 @@ description (corps en éditeur riche).
   carrousel en tête de fiche (sinon, toute la galerie ; sinon, épreuves).
 - **Clic-à-éditer** : titre, programme, statut, lieu, résumé, corps, couverture,
   champs de la fiche technique sont marqués (`tinaField`) et éditables au clic.
+
+**Accueil (réglages)** — le **« Projet à la une »** est une **référence** vers
+une entrée de « Projets » : on change la vedette en modifiant cette seule
+référence (cliquer le bloc vedette sur l'accueil ouvre le réglage).
+
+**Journal (articles)** — titre · rubrique · date · temps de lecture ·
+extrait/chapô · signature · image · **projet lié** (référence vers un projet →
+carte « Projet lié ») · lien LinkedIn · corps (éditeur riche). Tout est
+éditable au clic sur la page de l'article.
+
+**Équipe** — une entrée par personne : nom · rôle · photo · ordre · bio.
+**Ajouter/supprimer une personne = créer/supprimer une entrée** dans l'admin ;
+la grille de la page Agence est éditable au clic.
 
 ## Images & optimisation
 

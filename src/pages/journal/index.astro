@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { Image } from 'astro:assets';
+import { resolveContentImage } from '../../lib/projet-images';
 import { getCollection } from 'astro:content';
 import { RUBRIQUE_ORDER } from '../../lib/journal';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
@@ -10,8 +10,15 @@ const locale = getLocale(Astro.url);
 const t = useTranslations(locale);
 const L = (p: string) => localizePath(p, locale);
 
-const articles = (await getCollection('journal', ({ data }) => !data.brouillon))
+const articlesRaw = (await getCollection('journal', ({ data }) => !data.brouillon))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+// image de carte : nom colocalisé ou média Tina (/uploads/…), résolue/optimisée
+const articles = await Promise.all(
+  articlesRaw.map(async (a) => ({
+    ...a,
+    img: await resolveContentImage('journal', a.id, a.data.image, { width: 640 }),
+  })),
+);
 
 const chips = [
   { key: 'tout', label: t('journal.all') },
@@ -42,8 +49,8 @@ const dShort = (d: Date) =>
           {articles.map((a) => (
             <a class="jcard plain" href={L(`/journal/${a.id}`)} data-rubrique={a.data.rubrique}>
               <div class="jcard-visual">
-                {a.data.image ? (
-                  <Image src={a.data.image} alt={a.data.titre} widths={[320, 480]} sizes="(max-width: 52rem) 100vw, 30vw" />
+                {a.img ? (
+                  <img src={a.img.src} width={a.img.width} height={a.img.height} alt={a.data.titre} loading="lazy" />
                 ) : (
                   <div class="ph" aria-hidden="true"></div>
                 )}

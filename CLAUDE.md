@@ -91,12 +91,16 @@ agence-ll/
 │   ├── lib/
 │   │   ├── axono.ts          ← générateur d'axonométrie (massing → SVG) — §14
 │   │   ├── projets-data.ts   ← catégorie/dept/massing par projet + palettes + carte IDF — §14
-│   │   └── teinte.ts         ← teinte par catégorie (page + axonométrie) — §14
+│   │   ├── teinte.ts         ← teinte par catégorie (page + axonométrie) — §14
+│   │   ├── tina-data.ts      ← fetchers Tina (requestWithMetadata) — §11
+│   │   ├── islands.ts        ← registre des îlots éditables Tina — §11
+│   │   └── projet-images.ts  ← chemins d'images Tina → astro:assets — §11
 │   ├── components/
 │   │   ├── Header.astro      ← nav desktop + menu mobile
 │   │   ├── Footer.astro
 │   │   ├── Axono.astro       ← axonométrie générée par projet (prend `id` ou `spec`)
 │   │   ├── Monogram.astro    ← sceau pieuvre (dispo ; non utilisé par le design validé)
+│   │   ├── islands/          ← régions éditables Tina (fiche projet, article, vedette, équipe)
 │   │   └── ProjectCard.astro
 │   ├── pages/
 │   │   ├── index.astro       ← accueil (la « thèse »)
@@ -279,7 +283,7 @@ Construis dans cet ordre — le design system d'abord, sinon on rattrape mal.
 5. **Contact** — brancher Formspree **ou** la route Resend ; page mentions légales.
 6. **Finitions** — favicon/OG définitifs (depuis le monogramme), `sitemap`,
    `robots.txt`, perfs images, micro-animations au scroll, vérif a11y/contrastes.
-7. **CMS Keystatic** pour Zoé — **VALIDÉ**, à intégrer (voir §11).
+7. **CMS TinaCMS** (édition visuelle au clic) — **INTÉGRÉ ✓** (voir §11).
 8. **Déploiement** — Vercel + domaine (voir §10).
 
 > **Transversal — bilingue FR/EN (validé).** À câbler **tôt** (ça touche le routage et
@@ -302,41 +306,46 @@ d'images seulement si la photothèque devient énorme.
 
 ---
 
-## 11. Option CMS — Keystatic (pour que Zoé édite sans coder)
+## 11. CMS — TinaCMS, édition visuelle React-free (INTÉGRÉ ✓)
 
-**Réponse directe à « faut-il Supabase pour gérer le contenu » : non.** Si Zoé doit
-ajouter/éditer des projets via une interface, on utilise **Keystatic** — un **CMS
-git-based** : interface d'admin propre, mais qui **réécrit le contenu en fichiers
-dans le dépôt** (Markdown/JSON). **Aucune base, aucun serveur, gratuit (MIT).**
+**Réponse directe à « faut-il Supabase pour gérer le contenu » : toujours non.**
+Le CMS est **TinaCMS** avec l'intégration **`@tinacms/astro`** (bridge vanilla-JS,
+mai 2026) : édition **au clic sur la page** dans l'admin **`/admin`**, contenu
+réécrit en **fichiers Markdown/MDX committés dans le dépôt** (via **Tina Cloud**
+en prod : auth GitHub + un commit par sauvegarde). **Aucune base.**
+*(Keystatic a été retiré — Tina couvre le besoin avec l'édition visuelle en plus.)*
 
-- Mise en place : `npx astro add` (intégrations React + Markdoc), `keystatic.config.ts`
-  à la racine, schéma **identique** à celui des content collections.
-- **Mode local** (dev) : admin sur `/keystatic`. **Mode GitHub** (prod) : Zoé édite
-  depuis le web, ça commit dans le dépôt.
-- ⚠️ **Gotcha connu** : l'admin Keystatic a besoin du SSR React (`MessageChannel`),
-  indisponible sur certains runtimes edge → on **charge Keystatic
-  conditionnellement (dev only)**, ou on déploie la route `/keystatic` séparément.
-  C'est un pattern documenté et éprouvé (Astro + Keystatic + Claude Code).
-
-→ ✅ **INTÉGRÉ ✓ (Keystatic).** Admin sur **`/keystatic`**, collections `projets`
-et `journal` (mêmes fichiers `.mdx` que les content collections), corps en
-`fields.mdx`. **Mode local** en dev ; **mode GitHub** en prod via
-`PUBLIC_KEYSTATIC_MODE=github` + secrets (voir **`docs/keystatic.md`**). Le site
-reste **statique** ; seules `/keystatic` et `/api/keystatic` tournent en SSR
-(`output: 'static'` + adaptateur `@astrojs/vercel`, intégrations `react()` +
-`keystatic()`). Toujours **aucune base** — le contenu vit dans le dépôt.
-Admin **en français** (`locale: 'fr-FR'`) + **sceau-pieuvre** en marque,
-**protégé par mot de passe** (`KEYSTATIC_PASSWORD`, middleware Basic Auth), et
-groupe **« Textes du site »** (singletons `accueil`/`agence`/`contact` →
-`src/content/site/*.json`, relus via `src/lib/site.ts`) pour éditer la prose
-(manifeste, savoir-faire, équipe…) sans coder.
+**Architecture (à respecter) :**
+- Pages publiques **statiques et sans React** (le bridge est un no-op hors admin).
+  Une seule route à la demande : **`/tina-island/[name]`** (`prerender:false`) —
+  l'endpoint que le bridge re-fetche pour re-rendre une région éditée.
+- Schéma : **`tina/config.ts`** (collections `projets`, `journal`, `equipe` +
+  singleton `accueil` avec **référence `projetVedette`**). Mêmes fichiers que les
+  content collections Astro.
+- Fetchers : `src/lib/tina-data.ts` (`requestWithMetadata`) ; registre d'îlots :
+  `src/lib/islands.ts` ; régions éditables : `src/components/islands/*.astro`
+  (`tinaField()` + `<TinaMarkdown>`), montées via `<TinaIsland>` dans les pages.
+- Images : media store **`public/uploads`** (git). Les images **colocalisées**
+  dans `src/content/**` restent **optimisées** par `astro:assets`
+  (`src/lib/projet-images.ts` résout les chemins Tina → imports d'images).
+  ⚠️ Les schémas des content collections utilisent **`z.string()`** (pas
+  `image()`) pour les champs image — sinon un upload Tina (`/uploads/…`)
+  casserait le build.
+- Build : **`tinacms build && astro build`** (cloud) avec repli **local**
+  (`tinacms dev -c "astro build"`) si identifiants absents/cloud indisponible —
+  cf. `vercel.json`. Identifiants : `PUBLIC_TINA_CLIENT_ID` + `TINA_TOKEN`
+  (variables d'env Vercel, jamais en dur). Détails : **`docs/tina.md`** + README.
+- ⚠️ Tina Cloud **indexe par branche** : `main` doit être indexée sur app.tina.io
+  (sinon `ERR_CLOUD_CHECK_FAILED` au build cloud → le repli local prend le relais).
 
 ---
 
 ## 12. Décisions — tranchées ✅ (28/06/2026)
 
-1. **CMS pour Zoé → OUI → INTÉGRÉ ✓.** **Keystatic** (git-based, sans base) est en
-   place : admin `/keystatic`, projets + Journal. Détails §11 et `docs/keystatic.md`.
+1. **CMS → OUI → INTÉGRÉ ✓ (révisé 30/06/2026).** **TinaCMS** (git-based via Tina
+   Cloud, **édition visuelle au clic**, sans React sur les pages publiques) : admin
+   `/admin`, projets + Journal + équipe + projet vedette. Détails §11 et `docs/tina.md`.
+   *(Keystatic, un temps intégré, a été retiré au profit de Tina.)*
 2. **Bilingue FR/EN → OUI → INFRA EN PLACE (EN à finir).** i18n natif d'Astro câblé
    (`astro.config.mjs` : `defaultLocale:'fr'`, `locales:['fr','en']`,
    `prefixDefaultLocale:false`). Dictionnaire d'**interface** FR/EN dans
