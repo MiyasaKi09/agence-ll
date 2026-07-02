@@ -177,7 +177,7 @@ respirer.
 - **Recoloration de page par catégorie** de projet, avec **transition douce entre pages**
   via les **View Transitions** d'Astro (`<ClientRouter/>`) — navigation type SPA ;
 - **Carrousel plein écran** (clavier + flèches au survol des bords) ;
-- **Carte Île-de-France interactive** (filtre par département) ;
+- **Carte de France interactive** (zoom au survol, filtre par département) ;
 - **Axonométries générées** par projet (massing → SVG, teintées par catégorie).
 
 Toujours **pas de WebGL/3D, pas de parallaxe, pas de scroll-jacking** : tout est en
@@ -399,7 +399,7 @@ l'architecture Astro multi-pages. Effets et où ils vivent :
 | **Recoloration de page** (fond + nav + footer + accent) sur la fiche projet | `teintePageVars()` sur `<body style>` (Base) ; `--paper/--nav-bg/--footer-bg` |
 | **Transition de thème entre pages** (effet « la page se recolore ») | **View Transitions** `<ClientRouter/>` (Base) + `transition` sur body/header/footer + `::view-transition-*(root)` 0.5s dans `global.css` |
 | **Survol immersif** (atténue les voisins + nom géant plein écran) | `src/pages/projets/index.astro` (overlay `#proj-overlay` + script, **gardé `(hover:hover)` + reduced-motion**) |
-| **Carte Île-de-France interactive** (filtre par département) | `projets-data.ts` (`IDF_BLOB`, `DEPT_POS`, `DEPT_NAMES`) + SVG/JS dans `projets/index.astro` |
+| **Carte de France interactive** (contour réel + 96 départements, **zoom au survol/focus** pour sélectionner, filtre par département) | `projets-data.ts` (`FRANCE_PATH`, `DEPT_POS`, `DEPT_NAMES`) + SVG/JS dans `projets/index.astro` |
 | **Filtres** catégorie + département + **tri** récent/ancien + reset lieu | script de `projets/index.astro` (état `{cat,dept,sort}`, `style.order` + `display`) |
 | **Carrousel plein écran** (compteur, fermer, flèches au survol des bords, clavier Esc/←/→, verrou scroll) | `src/pages/projets/[id].astro` (overlay `#carousel` + script) |
 | **Menu mobile** (bouton « Menu » → panneau) | `src/components/Header.astro` |

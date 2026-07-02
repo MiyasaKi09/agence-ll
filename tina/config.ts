@@ -4,10 +4,13 @@ import { defineConfig, type Collection } from 'tinacms';
 // Backend = Tina Cloud (auth + commits Git). Identifiants en variables d'env
 // Vercel (PUBLIC_TINA_CLIENT_ID, TINA_TOKEN). En dev local : `tinacms dev`
 // lance un serveur GraphQL local (pas besoin du cloud).
-const branch =
-  process.env.TINA_BRANCH ||
-  process.env.VERCEL_GIT_COMMIT_REF ||
-  'main';
+//
+// IMPORTANT : l'admin cible TOUJOURS `main` (la branche indexée sur Tina Cloud
+// et celle qui déclenche la prod). On NE prend PAS VERCEL_GIT_COMMIT_REF :
+// une preview promue en prod embarquerait sinon un admin qui committe sur la
+// branche de la PR — les éditions seraient orphelines (vécu). Surcharge
+// possible via TINA_BRANCH si besoin.
+const branch = process.env.TINA_BRANCH || 'main';
 
 const slugify = (s: string) =>
   (s || 'sans-titre')
@@ -62,6 +65,10 @@ const projets: Collection = {
     {
       type: 'image', name: 'couverture', label: 'Couverture',
       description: 'Image de couverture (facultatif).',
+    },
+    {
+      type: 'image', name: 'axonometrie', label: 'Axonométrie (image)',
+      description: 'SVG ou PNG qui REMPLACE le dessin axonométrique généré (grille, accueil, vignettes). Laisser vide pour garder le dessin automatique.',
     },
     {
       type: 'object', name: 'galerie', label: 'Galerie', list: true,

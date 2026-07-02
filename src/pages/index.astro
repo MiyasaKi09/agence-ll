@@ -5,7 +5,7 @@ import TinaIsland from '@tinacms/astro/TinaIsland.astro';
 import AccueilVedette from '../components/islands/AccueilVedette.astro';
 import Axono from '../components/Axono.astro';
 import { teinteFor } from '../lib/teinte';
-import { getAccueil } from '../lib/tina-data';
+import { getAccueil, getProjetsConnection } from '../lib/tina-data';
 import { resolveContentImage } from '../lib/projet-images';
 import { getLocale, useTranslations, localizePath } from '../i18n/utils';
 
@@ -14,12 +14,32 @@ const t = useTranslations(locale);
 const L = (p: string) => localizePath(p, locale);
 
 // Projet à la une : référence « projetVedette » du singleton accueil (Tina).
+// Si la référence est vide (ex. projet vedette supprimé depuis l'admin), on
+// retombe sur le projet le plus en avant (ordre puis année) pour ne pas
+// perdre la section — l'îlot reste lié au réglage, cliquable en édition.
 const accueilRes = await getAccueil();
 const accueil = accueilRes?.data?.accueil ?? null;
+let vedette: any = accueil?.projetVedette ?? null;
+if (!vedette) {
+  const conn = await getProjetsConnection();
+  const nodes = (conn?.data?.projetsConnection?.edges ?? [])
+    .map((e: any) => e?.node)
+    .filter((n: any) => n && !n.brouillon);
+  nodes.sort(
+    (a: any, b: any) =>
+      (a.ordre ?? 9999) - (b.ordre ?? 9999) || (b.annee ?? 0) - (a.annee ?? 0),
+  );
+  vedette = nodes[0] ?? null;
+}
 
 const projetsAll = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
-const projetsRecents = projetsAll.slice(0, 3);
+const projetsRecents = await Promise.all(
+  projetsAll.slice(0, 3).map(async (p) => ({
+    ...p,
+    axoSrc: (await resolveContentImage('projets', p.id, p.data.axonometrie, { width: 640 }))?.src,
+  })),
+);
 
 const articlesRaw = (await getCollection('journal', ({ data }) => !data.brouillon))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
@@ -42,7 +62,7 @@ const dShort = (d: Date) =>
 ---
 <Base>
   <!-- ——— PROJET À LA UNE (îlot Tina : référence « projetVedette ») ——— -->
-  {accueil?.projetVedette && (
+  {vedette && (
     <section class="section container featured-sec" aria-labelledby="featured-h">
       <div class="eyebrow-row">
         <span id="featured-h" class="eyebrow">{t('home.projetUne')}</span>
@@ -50,7 +70,7 @@ const dShort = (d: Date) =>
       </div>
 
       <TinaIsland name="accueil" params={{ lang: locale }} wrapper={{ tag: 'div', className: 'vedette-island' }} primary>
-        <AccueilVedette accueil={accueil} lang={locale} />
+        <AccueilVedette accueil={accueil} vedette={vedette} lang={locale} />
       </TinaIsland>
     </section>
   )}
@@ -97,7 +117,7 @@ const dShort = (d: Date) =>
       <div class="recents-grid">
         {projetsRecents.map((p) => (
           <a class="rcard plain" href={L(`/projets/${p.id}`)}>
-            <Axono id={p.id} teinte={teinteFor(p.id)} class="rcard-axo" />
+            <Axono id={p.id} src={p.axoSrc} teinte={teinteFor(p.id)} class="rcard-axo" />
             <h3 class="rcard-titre">{p.data.titre}</h3>
             <p class="rcard-meta">{p.data.lieu} · {p.data.annee}</p>
           </a>

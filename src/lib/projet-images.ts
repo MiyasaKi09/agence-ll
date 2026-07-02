@@ -9,7 +9,7 @@ import { getImage } from 'astro:assets';
 
 type ImgMod = { default: ImageMetadata };
 const local = import.meta.glob<ImgMod>(
-  ['/src/content/**/*.{jpg,jpeg,png,webp,avif}', '/src/assets/uploads/**/*.{jpg,jpeg,png,webp,avif}'],
+  ['/src/content/**/*.{jpg,jpeg,png,webp,avif,svg}', '/src/assets/uploads/**/*.{jpg,jpeg,png,webp,avif,svg}'],
   { eager: true },
 );
 
@@ -42,8 +42,15 @@ export async function resolveContentImage(
   for (const key of candidates(dir, slug, value)) {
     const mod = local[key];
     if (mod?.default) {
-      const img = await getImage({ src: mod.default, width: opts.width, format: 'webp' });
-      return { src: img.src, width: img.attributes.width, height: img.attributes.height, optimized: true };
+      try {
+        // SVG : pas de transformation (passthrough) ; bitmaps : webp redimensionné
+        const img = key.endsWith('.svg')
+          ? await getImage({ src: mod.default })
+          : await getImage({ src: mod.default, width: opts.width, format: 'webp' });
+        return { src: img.src, width: img.attributes.width, height: img.attributes.height, optimized: true };
+      } catch {
+        break; // repli : chemin brut ci-dessous
+      }
     }
   }
   // chemin hors de src/ (ex. public/uploads) ou distant : servi tel quel

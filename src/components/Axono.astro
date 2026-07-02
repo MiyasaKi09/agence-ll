@@ -1,8 +1,9 @@
 ---
-// Axonométrie dessinée d'un bâtiment, GÉNÉRÉE par projet (reprise du design
-// Claude « Site Agence L&L »). On passe l'identifiant du projet : le massing
-// vient de projets-data.ts et la teinte de sa catégorie. On peut aussi forcer
-// un `spec` (massing) et/ou une `teinte`.
+// Axonométrie d'un bâtiment. Par défaut, GÉNÉRÉE par projet (massing de
+// projets-data.ts, teinte de sa catégorie — reprise du design Claude
+// « Site Agence L&L »). Si le projet a une image `axonometrie` (SVG/PNG
+// uploadée dans l'admin), elle REMPLACE le dessin généré : passer son URL
+// résolue via `src`.
 import { axoSvg } from '../lib/axono';
 import { PROJETS_META, type AxoBox } from '../lib/projets-data';
 import { teinteFor, teinteVars, type Teinte } from '../lib/teinte';
@@ -10,21 +11,29 @@ import { teinteFor, teinteVars, type Teinte } from '../lib/teinte';
 interface Props {
   /** identifiant du projet (collection) — détermine massing + teinte */
   id?: string;
+  /** image de remplacement (URL résolue) — prioritaire sur le dessin généré */
+  src?: string;
   /** massing explicite (prioritaire sur `id`) */
   spec?: AxoBox[];
   /** teinte explicite (sinon déduite de l'id) */
   teinte?: Teinte;
   class?: string;
 }
-const { id, spec, teinte, class: cls } = Astro.props;
+const { id, src, spec, teinte, class: cls } = Astro.props;
 
 const FALLBACK: AxoBox[] = [{ x: 0, y: 0, w: 3, d: 4, h: 4, roof: 2 }];
 const boxes = spec ?? (id ? PROJETS_META[id]?.axo : undefined) ?? FALLBACK;
 const t = teinte ?? (id ? teinteFor(id) : undefined);
 const style = t ? teinteVars(t) : undefined;
-const svg = axoSvg(boxes);
+const svg = src ? null : axoSvg(boxes);
 ---
-<div class={`axono ${cls ?? ''}`} style={style} aria-hidden="true" set:html={svg}></div>
+{src ? (
+  <div class={`axono ${cls ?? ''}`} style={style} aria-hidden="true">
+    <img class="axono-img" src={src} alt="" loading="lazy" />
+  </div>
+) : (
+  <div class={`axono ${cls ?? ''}`} style={style} aria-hidden="true" set:html={svg}></div>
+)}
 
 <style>
   .axono {
@@ -36,5 +45,11 @@ const svg = axoSvg(boxes);
     --ph2: #D8CCB7;
     --surface: #F4EFE6;
     transition: transform 0.4s var(--ease);
+  }
+  .axono-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
   }
 </style>

@@ -3,7 +3,8 @@ import Base from '../../layouts/Base.astro';
 import Axono from '../../components/Axono.astro';
 import { getCollection } from 'astro:content';
 import { teinteFor } from '../../lib/teinte';
-import { metaFor, DEPT_POS, DEPT_NAMES, IDF_BLOB, type Cat } from '../../lib/projets-data';
+import { metaFor, DEPT_POS, DEPT_NAMES, FRANCE_PATH, FRANCE_VIEWBOX, type Cat } from '../../lib/projets-data';
+import { resolveContentImage } from '../../lib/projet-images';
 import { getLocale, useTranslations, localizePath } from '../../i18n/utils';
 
 const locale = getLocale(Astro.url);
@@ -13,9 +14,11 @@ const L = (p: string) => localizePath(p, locale);
 const projetsRaw = (await getCollection('projets', ({ data }) => !data.brouillon))
   .sort((a, b) => (a.data.ordre ?? 9999) - (b.data.ordre ?? 9999) || b.data.annee - a.data.annee);
 
-// Enrichit chaque projet de sa catégorie + département (cf. projets-data.ts)
-const projets = projetsRaw.map((p) => {
-  const m = metaFor(p.id, { programme: p.data.programme, tags: p.data.tags, lieu: p.data.lieu });
+// Enrichit chaque projet de sa catégorie + département (cf. projets-data.ts).
+// `axo` : image d'axonométrie uploadée (remplace le dessin généré si présente).
+const projets = await Promise.all(projetsRaw.map(async (p) => {
+  const m = metaFor(p.id, { programme: p.data.programme, tags: p.data.tags, lieu: p.data.lieu, categorie: p.data.categorie });
+  const axo = await resolveContentImage('projets', p.id, p.data.axonometrie, { width: 640 });
   return {
     id: p.id,
     titre: p.data.titre,
@@ -24,9 +27,10 @@ const projets = projetsRaw.map((p) => {
     annee: p.data.annee,
     cat: m.cat,
     dept: m.dept,
+    axoSrc: axo?.src,
     href: L(`/projets/${p.id}`),
   };
-});
+}));
 
 const filters: { key: 'tous' | Cat; label: string }[] = [
   { key: 'tous', label: 'Tous' },
@@ -40,9 +44,13 @@ const filters: { key: 'tous' | Cat; label: string }[] = [
 // comme le prototype) ; on ne place une pastille que pour les depts cartographiés.
 const deptCounts: Record<string, number> = {};
 for (const p of projets) if (p.dept) deptCounts[p.dept] = (deptCounts[p.dept] ?? 0) + 1;
+// pastilles limitées au cadre de la carte (grand Nord) — un département hors
+// zone reste filtrable via les cartes, il n'a juste pas de pastille.
+const [, , VB_W, VB_H] = FRANCE_VIEWBOX.split(' ').map(Number);
 const mapDepts = Object.keys(DEPT_POS)
   .filter((d) => deptCounts[d] > 0)
-  .map((d) => ({ code: d, name: DEPT_NAMES[d] ?? d, count: deptCounts[d], ...DEPT_POS[d] }));
+  .map((d) => ({ code: d, name: DEPT_NAMES[d] ?? d, count: deptCounts[d], ...DEPT_POS[d] }))
+  .filter((d) => d.x >= -4 && d.x <= VB_W + 4 && d.y >= -4 && d.y <= VB_H + 4);
 ---
 <Base
   title="Projets — Agence L&L"
@@ -66,20 +74,20 @@ const mapDepts = Object.keys(DEPT_POS)
         </div>
         <div class="sort-row">
           <button class="sort" id="sort-toggle" type="button" data-sort="recent">Trier : plus récents ↓</button>
-          <button class="zone" id="loc-reset" type="button" data-active="false" disabled>Toute l’Île-de-France</button>
+          <button class="zone" id="loc-reset" type="button" data-active="false" disabled>Tout le territoire</button>
         </div>
       </div>
 
       <div class="map-wrap">
         <span class="map-label">Carte des projets</span>
-        <svg class="map" viewBox="0 0 300 240" role="group" aria-label="Carte des projets par département" preserveAspectRatio="xMidYMid meet">
-          <path d={IDF_BLOB} fill="var(--paper-deep)" stroke="rgba(26,23,20,.16)" stroke-width="1" />
+        <svg class="map" viewBox={FRANCE_VIEWBOX} role="group" aria-label="Carte des projets par département — survoler pour agrandir" preserveAspectRatio="xMidYMid meet">
+          <path d={FRANCE_PATH} fill="var(--paper-deep)" stroke="rgba(26,23,20,.18)" stroke-width="0.8" stroke-linejoin="round" />
           {mapDepts.map((d) => (
             <g class="dept" data-dept={d.code} role="button" tabindex="0"
                aria-label={`${d.name} — ${d.count} projet${d.count > 1 ? 's' : ''}`} aria-pressed="false">
-              <circle class="dept-hit" cx={d.x} cy={d.y} r="16" fill="transparent" />
-              <circle class="dept-dot" cx={d.x} cy={d.y} r="7" />
-              <text class="dept-num" x={d.x} y={d.y + 3} text-anchor="middle">{d.count}</text>
+              <circle class="dept-hit" cx={d.x} cy={d.y} r="11" fill="transparent" />
+              <circle class="dept-dot" cx={d.x} cy={d.y} r="5.5" />
+              <text class="dept-num" x={d.x} y={d.y + 2.4} text-anchor="middle">{d.count}</text>
             </g>
           ))}
         </svg>
@@ -98,7 +106,7 @@ const mapDepts = Object.keys(DEPT_POS)
             data-titre={p.titre}
             data-meta={`${p.programme} · ${p.lieu} · ${p.annee}`}
           >
-            <Axono id={p.id} teinte={teinteFor(p.id)} class="pcard-axo" />
+            <Axono id={p.id} src={p.axoSrc} teinte={teinteFor(p.id)} class="pcard-axo" />
             <h2 class="pcard-titre">{p.titre}</h2>
           </a>
         ))}
@@ -168,7 +176,7 @@ const mapDepts = Object.keys(DEPT_POS)
         locBtn.disabled = !active;
         locBtn.textContent = active
           ? `Lieu : ${deptName[state.dept] || state.dept}   ✕`
-          : 'Toute l’Île-de-France';
+          : 'Tout le territoire';
       }
       apply();
     }
@@ -242,20 +250,40 @@ const mapDepts = Object.keys(DEPT_POS)
   .sort-row .zone[data-active='true'] { color: var(--terracotta); }
   .sort-row .zone:disabled { color: var(--stone); cursor: default; }
 
-  .map-wrap { text-align: right; }
+  .map-wrap { text-align: right; position: relative; z-index: 6; }
   .map-label {
     font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--stone);
   }
-  .map { width: clamp(190px, 22vw, 260px); height: auto; margin-top: 0.5rem; display: block; margin-left: auto; overflow: visible; }
+  .map {
+    width: clamp(190px, 22vw, 260px); height: auto; margin-top: 0.5rem;
+    display: block; margin-left: auto; overflow: visible;
+    transform-origin: top right;
+    transition: transform 0.35s var(--ease), filter 0.35s var(--ease);
+  }
+  /* la carte grossit au survol (ou au focus clavier) pour rendre les
+     départements sélectionnables — pointeurs à survol uniquement */
+  @media (hover: hover) {
+    .map-wrap:hover .map {
+      transform: scale(2.1);
+      filter: drop-shadow(0 10px 28px rgba(26, 23, 20, 0.18));
+    }
+  }
+  .map-wrap:focus-within .map {
+    transform: scale(2.1);
+    filter: drop-shadow(0 10px 28px rgba(26, 23, 20, 0.18));
+  }
   .dept { cursor: pointer; }
-  .dept-dot { fill: var(--ink); r: 7; transition: r 0.15s var(--ease), fill 0.15s var(--ease); }
+  .dept-dot {
+    fill: var(--ink); r: 5.5; stroke: var(--paper); stroke-width: 0.8;
+    transition: r 0.15s var(--ease), fill 0.15s var(--ease);
+  }
   .dept-num {
-    font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: var(--paper);
+    font-family: var(--font-mono); font-size: 7px; font-weight: 600; fill: var(--paper);
     pointer-events: none;
   }
   .dept:hover .dept-dot { fill: var(--terracotta); }
-  .dept[aria-pressed='true'] .dept-dot { fill: var(--terracotta); r: 9; }
+  .dept[aria-pressed='true'] .dept-dot { fill: var(--terracotta); r: 7.5; }
   .dept:focus-visible { outline: none; }
   .dept:focus-visible .dept-dot { stroke: var(--ink); stroke-width: 2; }
 
