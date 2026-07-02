@@ -84,6 +84,88 @@ const projets: Collection = {
   ],
 };
 
+// ── Singleton « accueil » — réglages de la page d'accueil ─────────────────────
+// Un seul fichier (src/content/site/accueil.json). Le « projet vedette » est une
+// RÉFÉRENCE vers une entrée de « projets » : on change la vedette en modifiant
+// cette seule référence, sans toucher aux projets.
+const accueil: Collection = {
+  name: 'accueil',
+  label: 'Accueil (réglages)',
+  path: 'src/content/site',
+  format: 'json',
+  match: { include: 'accueil' },
+  ui: {
+    allowedActions: { create: false, delete: false },
+    router: () => '/',
+  },
+  fields: [
+    {
+      type: 'reference', name: 'projetVedette', label: 'Projet à la une',
+      description: 'Le projet mis en vedette en tête de page d’accueil.',
+      collections: ['projets'],
+    },
+  ],
+};
+
+// ── Collection « journal » (articles) ─────────────────────────────────────────
+const journal: Collection = {
+  name: 'journal',
+  label: 'Journal (articles)',
+  path: 'src/content/journal',
+  format: 'mdx',
+  ui: {
+    router: ({ document }) =>
+      `/journal/${document._sys.breadcrumbs.slice(0, -1).join('/')}`,
+    filename: { slugify: (values) => `${slugify(values?.titre)}/index` },
+  },
+  fields: [
+    { type: 'string', name: 'titre', label: 'Titre', isTitle: true, required: true },
+    {
+      type: 'string', name: 'rubrique', label: 'Rubrique',
+      options: [
+        { value: 'chantiers', label: 'Chantiers' },
+        { value: 'reflexions', label: 'Réflexions' },
+        { value: 'presse', label: 'Presse' },
+        { value: 'distinctions', label: 'Distinctions' },
+      ],
+    },
+    { type: 'datetime', name: 'date', label: 'Date', required: true },
+    { type: 'string', name: 'tempsLecture', label: 'Temps de lecture', description: 'ex. 4 min (facultatif)' },
+    { type: 'string', name: 'extrait', label: 'Extrait / chapô', ui: { component: 'textarea' } },
+    { type: 'string', name: 'signature', label: 'Signature' },
+    { type: 'image', name: 'image', label: 'Image de couverture' },
+    { type: 'string', name: 'imageLegende', label: 'Légende du placeholder', description: 'Décrit la photo attendue, ex. [ pose de bottes de paille ]' },
+    {
+      type: 'reference', name: 'projetLie', label: 'Projet lié',
+      description: 'Rattache l’article à un projet (carte « Projet lié »).',
+      collections: ['projets'],
+    },
+    { type: 'string', name: 'linkedInUrl', label: 'Lien LinkedIn d’origine' },
+    { type: 'boolean', name: 'brouillon', label: 'Brouillon (masqué du site)' },
+    { type: 'rich-text', name: 'corps', label: 'Corps de l’article', isBody: true },
+  ],
+};
+
+// ── Collection « equipe » — les personnes de l'agence ─────────────────────────
+// Ajouter/supprimer une personne = créer/supprimer une entrée dans l'admin.
+const equipe: Collection = {
+  name: 'equipe',
+  label: 'Équipe',
+  path: 'src/content/equipe',
+  format: 'md',
+  ui: {
+    router: () => '/agence',
+    filename: { slugify: (values) => slugify(values?.nom) },
+  },
+  fields: [
+    { type: 'string', name: 'nom', label: 'Nom', isTitle: true, required: true },
+    { type: 'string', name: 'role', label: 'Rôle', description: 'ex. Architecte cofondatrice' },
+    { type: 'image', name: 'photo', label: 'Photo' },
+    { type: 'number', name: 'ordre', label: 'Ordre d’affichage' },
+    { type: 'rich-text', name: 'bio', label: 'Bio (courte, facultative)', isBody: true },
+  ],
+};
+
 export default defineConfig({
   branch,
   clientId: process.env.PUBLIC_TINA_CLIENT_ID ?? '',
@@ -92,5 +174,5 @@ export default defineConfig({
   // Médias dans le dépôt. NB : pour conserver l'optimisation `astro:assets`,
   // le rendu résout ces chemins en images importées (cf. src/lib/projet-images.ts).
   media: { tina: { mediaRoot: 'uploads', publicFolder: 'public' } },
-  schema: { collections: [projets] },
+  schema: { collections: [projets, accueil, journal, equipe] },
 });

@@ -1,0 +1,119 @@
+---
+// Région éditable d'un article du Journal (îlot Tina) : métadonnées, titre,
+// chapô, image, corps riche et carte « Projet lié » (référence).
+import { tinaField } from '@tinacms/astro/tina-field';
+import TinaMarkdown from '@tinacms/astro/TinaMarkdown.astro';
+import Axono from '../Axono.astro';
+import { refSlug } from '../../lib/tina-data';
+import { resolveContentImage } from '../../lib/projet-images';
+import { teinteFor } from '../../lib/teinte';
+import { dateLongue, tempsLecture } from '../../lib/journal';
+import { localizePath, useTranslations, type Locale } from '../../i18n/utils';
+import type { UIKey } from '../../i18n/ui';
+
+interface Props {
+  article: any;
+  slug: string;
+  lang?: string;
+}
+const { article, slug, lang = 'fr' } = Astro.props;
+const locale = (lang === 'en' ? 'en' : 'fr') as Locale;
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
+
+const a = article ?? {};
+const date = a.date ? new Date(a.date) : null;
+const lecture = a.tempsLecture ?? tempsLecture(a.extrait ?? '');
+const hero = await resolveContentImage('journal', slug, a.image, { width: 1400 });
+
+const lie = a.projetLie ?? null;
+const lieSlug = refSlug(lie);
+---
+<header class="art-head">
+  <p class="meta-line">
+    <span class="rubrique" data-tina-field={tinaField(a, 'rubrique')}>{t(`rubrique.${a.rubrique}` as UIKey)}</span>
+    <span class="sep" aria-hidden="true">·</span>
+    {date && <time datetime={date.toISOString()} data-tina-field={tinaField(a, 'date')}>{dateLongue(date)}</time>}
+    <span class="sep" aria-hidden="true">·</span>
+    <span data-tina-field={tinaField(a, 'tempsLecture')}>{lecture} {t('article.reading')}</span>
+  </p>
+  <h1 data-tina-field={tinaField(a, 'titre')}>{a.titre}</h1>
+  <p class="signature" data-tina-field={tinaField(a, 'signature')}>{a.signature}</p>
+</header>
+
+{hero ? (
+  <figure class="hero">
+    <img src={hero.src} width={hero.width} height={hero.height} alt={a.titre} data-tina-field={tinaField(a, 'image')} />
+  </figure>
+) : (
+  <div class="hero ph" role="img" aria-label={a.titre} data-tina-field={tinaField(a, 'image')}>
+    <span class="ph-cap">[ {a.imageLegende ?? 'photo — illustration de l’article'} ]</span>
+  </div>
+)}
+
+<p class="chapo" data-tina-field={tinaField(a, 'extrait')}>{a.extrait}</p>
+
+<div class="prose" data-tina-field={tinaField(a, 'corps')}>
+  <TinaMarkdown content={a.corps} />
+</div>
+
+{lie && (
+  <a class="projet-lie plain" href={L(`/projets/${lieSlug}`)} data-tina-field={tinaField(a, 'projetLie')}>
+    <Axono id={lieSlug} teinte={teinteFor(lieSlug)} class="pl-axo" />
+    <span class="pl-body">
+      <span class="pl-label">{t('article.related')}</span>
+      <span class="pl-titre">{lie.titre}</span>
+      <span class="pl-meta">{lie.lieu} · {lie.annee} →</span>
+    </span>
+  </a>
+)}
+
+<style>
+  .meta-line {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6ch;
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--stone); margin-top: clamp(1.2rem, 3vw, 1.8rem);
+  }
+  .meta-line .rubrique { color: var(--terracotta); }
+  .meta-line .sep { color: var(--stone-light); }
+  .art-head h1 {
+    font-family: var(--font-display); font-weight: 500; font-size: clamp(2rem, 4.4vw, 3rem);
+    line-height: 1.08; color: var(--ink); margin-top: 0.6rem;
+  }
+  .signature {
+    font-family: var(--font-display); font-style: italic; font-size: 1.15rem;
+    color: var(--stone); margin-top: 0.8rem;
+  }
+
+  .hero { margin-block: clamp(1.6rem, 4vw, 2.4rem); }
+  .hero img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border: var(--rule); display: block; }
+  .hero.ph {
+    aspect-ratio: 16 / 10; display: grid; place-items: end start; padding: 0; border: var(--rule);
+    background: repeating-linear-gradient(135deg, var(--ph1, #E7DFD0) 0 13px, var(--surface, #EFE9DE) 13px 26px);
+  }
+  .hero .ph-cap {
+    font-family: var(--font-mono); font-size: 0.66rem; color: var(--stone);
+    background: rgba(246, 242, 235, 0.72); padding: 0.3rem 0.6rem; margin: 1rem;
+  }
+
+  .chapo {
+    font-family: var(--font-display); font-weight: 500; font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+    line-height: 1.3; color: var(--ink); margin-bottom: clamp(1.4rem, 3vw, 2rem); max-width: none;
+  }
+
+  .projet-lie {
+    display: flex; align-items: center; gap: 1.2rem;
+    background: var(--paper-deep); border: var(--rule);
+    padding: 1rem 1.2rem; margin-top: clamp(2rem, 5vw, 3rem);
+    transition: border-color 0.2s var(--ease);
+  }
+  .projet-lie:hover { border-color: var(--terracotta); }
+  .projet-lie :global(.pl-axo) { width: 80px; flex: none; aspect-ratio: 4 / 3; padding: 0; }
+  .pl-body { display: flex; flex-direction: column; gap: 0.2rem; }
+  .pl-label {
+    font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--terracotta);
+  }
+  .pl-titre { font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; color: var(--ink); }
+  .pl-meta { font-family: var(--font-mono); font-size: 0.68rem; color: var(--stone); }
+  .projet-lie:hover .pl-titre { color: var(--terracotta-deep); }
+</style>

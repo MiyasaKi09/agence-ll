@@ -2,8 +2,6 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import react from '@astrojs/react';
-import keystatic from '@keystatic/astro';
 import tina from '@tinacms/astro/integration';
 import { tinaAdminDevRedirect } from '@tinacms/astro/vite';
 import vercel from '@astrojs/vercel';
@@ -22,17 +20,16 @@ export default defineConfig({
     routing: { prefixDefaultLocale: false },
   },
 
-  // SSG par défaut : toutes les pages publiques sont pré-rendues (statiques, zéro JS).
-  // L'admin Keystatic injecte deux routes en `prerender: false` (/keystatic et
-  // /api/keystatic) — elles tournent côté serveur. En Astro 5, `output: 'static'`
-  // + un adaptateur autorise ces quelques routes à la demande tout en gardant le
-  // reste du site statique. Voir CLAUDE.md §11.
+  // SSG par défaut : toutes les pages publiques sont pré-rendues (statiques,
+  // zéro React). Une seule route tourne à la demande : /tina-island/[name]
+  // (prerender:false), l'endpoint que le bridge d'édition Tina re-fetche.
+  // En Astro 5, `output: 'static'` + un adaptateur autorise cette route à la
+  // demande tout en gardant le reste du site statique. Voir CLAUDE.md §11.
   output: 'static',
   adapter: vercel(),
 
   // Derrière le proxy Vercel, Astro ne fait confiance à l'en-tête x-forwarded-host
-  // (le vrai domaine public) que si l'hôte est listé ici — sinon il retombe sur
-  // « localhost », ce qui casse le redirect_uri OAuth de l'admin Keystatic.
+  // (le vrai domaine public) que si l'hôte est listé ici.
   // Ajoute ton domaine final ici quand il sera branché.
   security: {
     allowedDomains: [
@@ -44,14 +41,11 @@ export default defineConfig({
   },
 
   integrations: [
-    react(),       // requis par l'admin Keystatic (temporaire)
-    keystatic(),   // CMS actuel — sera retiré au profit de Tina (étape suivante)
     tina(),        // TinaCMS — édition visuelle React-free ; admin /admin
     mdx(),
     sitemap({
-      // on n'indexe pas les admins / l'API / l'endpoint d'îlot Tina
+      // on n'indexe pas l'admin / l'API / l'endpoint d'îlot Tina
       filter: (page) =>
-        !page.includes('/keystatic') &&
         !page.includes('/admin') &&
         !page.includes('/tina-island') &&
         !page.includes('/api/'),

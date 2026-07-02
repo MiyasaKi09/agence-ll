@@ -1,0 +1,44 @@
+---
+// Grille « L'équipe » de la page Agence — îlot Tina.
+// Chaque personne est une entrée de la collection « equipe » : ajouter/supprimer
+// une personne = créer/supprimer une entrée dans l'admin ; nom, rôle et photo
+// sont éditables au clic.
+import { tinaField } from '@tinacms/astro/tina-field';
+import { resolveContentImage } from '../../lib/projet-images';
+
+interface Props {
+  membres: any[];
+}
+const { membres = [] } = Astro.props;
+
+const resolved = await Promise.all(
+  membres.filter(Boolean).map(async (m) => ({
+    ...m,
+    photoResolved: await resolveContentImage('equipe', m._sys?.filename ?? '', m.photo, { width: 480 }),
+  })),
+);
+---
+<div class="equipe-grid">
+  {resolved.map((m) => (
+    <div class="membre">
+      {m.photoResolved ? (
+        <img class="portrait" src={m.photoResolved.src} width={m.photoResolved.width} height={m.photoResolved.height} alt={m.nom} data-tina-field={tinaField(m, 'photo')} />
+      ) : (
+        <div class="portrait ph" aria-hidden="true" data-tina-field={tinaField(m, 'photo')}></div>
+      )}
+      <h3 data-tina-field={tinaField(m, 'nom')}>{m.nom}</h3>
+      <p data-tina-field={tinaField(m, 'role')}>{m.role}</p>
+    </div>
+  ))}
+</div>
+
+<style>
+  .equipe-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1.4rem, 3vw, 2.2rem); }
+  .portrait { aspect-ratio: 1 / 1; width: 100%; object-fit: cover; border: var(--rule); display: block; }
+  .ph { background: repeating-linear-gradient(135deg, var(--ph1, #E7DFD0) 0 11px, var(--surface, #EFE9DE) 11px 22px); }
+  .membre h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; margin-top: 0.8rem; color: var(--ink); }
+  .membre p { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.04em; color: var(--stone); margin-top: 0.3rem; }
+
+  @media (max-width: 60rem) { .equipe-grid { grid-template-columns: repeat(2, 1fr); gap: 1.8rem; } }
+  @media (max-width: 30rem) { .equipe-grid { grid-template-columns: 1fr; } }
+</style>
